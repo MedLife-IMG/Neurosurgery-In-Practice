@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greenberg Neurosurgery — Clinical Case Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e14;
+  --bg2: #111620;
+  --bg3: #181e2a;
+  --border: #1e2a3a;
+  --border2: #2a3a52;
+  --accent: #00d4aa;
+  --accent2: #0097ff;
+  --warn: #ff6b35;
+  --danger: #e74c3c;
+  --text: #d8e4f0;
+  --text2: #8ca0b8;
+  --text3: #4a6080;
+  --mono: 'IBM Plex Mono', monospace;
+  --serif: 'Libre Baskerville', Georgia, serif;
+  --sans: 'Space Grotesk', sans-serif;
+  --radius: 6px;
+  --transition: 0.18s ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-logo {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px solid var(--accent);
+  padding: 3px 8px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.header-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+}
+.header-progress {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progress-bar {
+  width: 120px;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.4s ease;
+}
+.progress-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 51px);
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  background: var(--bg2);
+  padding: 16px 0;
+}
+.sidebar-section {
+  margin-bottom: 4px;
+}
+.sidebar-section-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text3);
+  text-transform: uppercase;
+  padding: 8px 16px 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text2);
+  border-left: 2px solid transparent;
+  transition: var(--transition);
+}
+.sidebar-item:hover { background: var(--bg3); color: var(--text); }
+.sidebar-item.active {
+  background: rgba(0,212,170,0.07);
+  border-left-color: var(--accent);
+  color: var(--accent);
+}
+.sidebar-item.solved { color: var(--text3); }
+.sidebar-item.solved::after {
+  content: "✓";
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 11px;
+}
+.sidebar-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  min-width: 24px;
+}
+.sidebar-item.active .sidebar-num { color: var(--accent); }
+
+/* ── MAIN ── */
+.main {
+  overflow-y: auto;
+  max-height: calc(100vh - 51px);
+}
+
+/* ── WELCOME SCREEN ── */
+.welcome {
+  max-width: 680px;
+  margin: 60px auto;
+  padding: 0 32px;
+}
+.welcome-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.welcome h1 {
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.welcome p {
+  color: var(--text2);
+  line-height: 1.75;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+.welcome-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 32px 0;
+}
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.stat-num {
+  font-family: var(--mono);
+  font-size: 28px;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text3);
+}
+.start-btn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 12px 28px;
+  border-radius: var(--radius);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: var(--transition);
+}
+.start-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* ── CASE SCREEN ── */
+.case-screen {
+  padding: 32px 40px;
+  max-width: 800px;
+  display: none;
+}
+.case-screen.active { display: block; }
+
+.case-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 20px;
+}
+.badge-section {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 3px;
+  color: var(--accent2);
+}
+
+.case-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--text);
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+/* PATIENT CARD */
+.patient-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.patient-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+}
+.patient-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.patient-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.patient-meta { flex: 1; }
+.patient-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.patient-demo {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+.vitals-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.vital {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+}
+.vital span {
+  color: var(--accent);
+}
+
+/* SECTIONS */
+.case-section {
+  margin-bottom: 20px;
+}
+.case-section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.case-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.narrative {
+  font-family: var(--serif);
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: var(--text);
+  font-style: italic;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent2);
+  padding: 16px 20px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-bottom: 16px;
+}
+
+.findings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.finding-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.finding-block-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.finding-item {
+  font-size: 13px;
+  color: var(--text);
+  padding: 2px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.5;
+}
+.finding-item::before {
+  content: '▸';
+  color: var(--accent);
+  font-size: 10px;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.lab-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.lab-table th {
+  text-align: left;
+  color: var(--text3);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border2);
+}
+.lab-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.lab-table td.abnormal { color: var(--warn); }
+.lab-table td.critical { color: var(--danger); }
+
+.imaging-block {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text2);
+}
+.imaging-block .modality {
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* ANSWER SECTION */
+.answer-section {
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.answer-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.answer-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.answer-input {
+  flex: 1;
+  min-width: 240px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition);
+}
+.answer-input:focus { border-color: var(--accent); }
+.submit-btn {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.submit-btn:hover { background: rgba(0,212,170,0.1); }
+.hint-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.hint-btn:hover { border-color: var(--warn); color: var(--warn); }
+
+.hint-box {
+  background: rgba(255,107,53,0.07);
+  border: 1px solid rgba(255,107,53,0.25);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--warn);
+  display: none;
+  font-family: var(--mono);
+}
+.hint-box.visible { display: block; }
+
+/* RESULT */
+.result-box {
+  margin-top: 16px;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: none;
+}
+.result-box.correct {
+  display: block;
+  background: rgba(0,212,170,0.07);
+  border: 1px solid rgba(0,212,170,0.3);
+}
+.result-box.wrong {
+  display: block;
+  background: rgba(231,76,60,0.07);
+  border: 1px solid rgba(231,76,60,0.3);
+}
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.result-box.correct .result-header { color: var(--accent); }
+.result-box.wrong .result-header { color: var(--danger); }
+.result-icon { font-size: 20px; }
+
+.explanation {
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.key-points {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.key-points-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.key-point {
+  font-size: 13px;
+  color: var(--text);
+  padding: 3px 0;
+  display: flex;
+  gap: 8px;
+  line-height: 1.55;
+}
+.key-point::before {
+  content: '★';
+  color: var(--accent);
+  font-size: 10px;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.greenberg-ref {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.next-btn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 10px 22px;
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: var(--transition);
+  margin-top: 8px;
+}
+.next-btn:hover { opacity: 0.85; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logo">GRNSRG</div>
+  <div class="header-title">Handbook of Neurosurgery 9e — Clinical Case Simulator</div>
+  <div class="header-progress">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-text" id="progressText">0 / 38</div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="main" id="mainArea">
+
+    <!-- WELCOME -->
+    <div id="welcomeScreen" style="padding:0">
+      <div class="welcome">
+        <div class="welcome-eyebrow">Greenberg · Sections II & IV · Ch 10–11, 15</div>
+        <h1>Clinical Case<br>Simulator</h1>
+        <p>Thirty-eight cases drawn from pathologies in Chapters 10–11 (Neurology for Neurosurgeons; Neurovascular Disorders &amp; Neurotoxicology) and Chapter 15 (Primary Intracranial Anomalies). Each case is deliberately complex — diagnoses are obscured by atypical presentations, misleading initial findings, and competing differentials.</p>
+        <p>Enter your diagnosis in the free-text field. Partial credit is given for correct disease category. A hint system is available (costs a flag on the case). All explanations reference the Greenberg chapter and page.</p>
+        <div class="welcome-stats">
+          <div class="stat-card"><span class="stat-num">38</span><span class="stat-label">Total cases</span></div>
+          <div class="stat-card"><span class="stat-num">3</span><span class="stat-label">Chapter groups</span></div>
+          <div class="stat-card"><span class="stat-num">★</span><span class="stat-label">Greenberg-referenced</span></div>
+        </div>
+        <button class="start-btn" onclick="startSim()">Begin Cases →</button>
+      </div>
+    </div>
+
+    <!-- CASES injected here -->
+    <div id="caseArea"></div>
+
+  </main>
+</div>
+
+<script>
+const CASES = [
+  // ══════════════ CH 10 — NEUROLOGY FOR NEUROSURGEONS ══════════════
+  {
+    id: 1, section: "Ch 10 — Neurology", tag: "10.1",
+    answer: ["dementia", "lewy body dementia", "dlb", "dementia with lewy bodies"],
+    hint: "Think about the triad: cognition + movement + visual phenomena — but not in the typical Parkinson's order.",
+    ref: "Greenberg §10.1, p. 189",
+    case: {
+      title: "The professor who forgets, then shakes, then sees things",
+      patient: { name: "Heinrich V.", age: 74, sex: "M", emoji: "👴" },
+      demographics: "74 M • Retired professor • No prior psych history",
+      vitals: { BP: "138/82", HR: "72", RR: "14", T: "36.8°C", O2: "98%" },
+      narrative: `A 74-year-old retired professor is referred by his GP for "fluctuating confusion." His wife reports that for 8 months he has had good days and bad days — some mornings he is sharp and witty, others he cannot remember where he is. Three months ago he began describing "small men walking through the bedroom" at night — vivid, colourful, non-frightening. He takes no psychoactive drugs. His family physician tried risperidone for the visual phenomena; two days later he became rigid, akinetic, and nearly unresponsive — he was hospitalised for a week. He now reports a mild shuffle when walking. A previous neurologist diagnosed early Parkinson's dementia and started levodopa; cognition improved transiently but motor symptoms are only modestly better.`,
+      neurological: [
+        "Fluctuating cognition (MMSE 18/30 today, 26/30 last week by report)",
+        "Resting tremor absent; bradykinesia present bilaterally",
+        "REM sleep behaviour disorder confirmed by wife (acts out dreams violently)",
+        "Orthostatic hypotension: 145/85 → 112/68 on standing",
+        "Visual hallucinations: formed, colourful, recurrent"
+      ],
+      labs: [
+        { name: "B12", val: "310 pmol/L", ref: "180–900", flag: "" },
+        { name: "TSH", val: "2.1 mIU/L", ref: "0.4–4.0", flag: "" },
+        { name: "RPR", val: "Non-reactive", ref: "—", flag: "" },
+        { name: "ANA", val: "Negative", ref: "—", flag: "" },
+        { name: "CSF protein", val: "0.48 g/L", ref: "<0.45", flag: "abnormal" },
+        { name: "CSF 14-3-3", val: "Negative", ref: "—", flag: "" }
+      ],
+      imaging: "MRI brain: mild cortical atrophy predominantly posterior. Significant hippocampal atrophy absent. DaTscan: reduced dopamine transporter uptake bilaterally in putamen. FDG-PET: occipital hypometabolism with relative preservation of posterior cingulate (cingulate island sign).",
+    }
+  },
+  {
+    id: 2, section: "Ch 10 — Neurology", tag: "10.2",
+    answer: ["migraine", "hemiplegic migraine", "familial hemiplegic migraine", "migraine with aura", "complex migraine"],
+    hint: "Motor aura + headache + family history + young patient + reversibility are all clues. Don't call it stroke.",
+    ref: "Greenberg §10.2.2, p. 189",
+    case: {
+      title: "The 28-year-old with a stroke that wasn't",
+      patient: { name: "Camille D.", age: 28, sex: "F", emoji: "👩" },
+      demographics: "28 F • Graphic designer • No prior neurological history",
+      vitals: { BP: "124/76", HR: "88", RR: "16", T: "37.1°C", O2: "99%" },
+      narrative: `A 28-year-old woman is brought to the emergency department with a 4-hour history of right arm weakness and difficulty finding words. Paramedics activated a stroke alert. On questioning, she recalls a 30-minute preceding episode of flickering lights in her left visual field. Over the past 5 years she has had 4 similar events, each following sleep deprivation or menstruation, and each resolving within 24 hours. Her mother and maternal uncle had "unusual migraines with paralysis." She had a normal MRI 2 years ago after a similar event. NIHSS on arrival is 4 (aphasia + mild right arm drift). She is not on oral contraceptives.`,
+      neurological: [
+        "Mild expressive aphasia — intact comprehension",
+        "Right arm pronator drift — 4/5 strength proximally",
+        "Deep tendon reflexes symmetric and 2+",
+        "No Babinski; sensory examination normal",
+        "Headache now building — right hemicranial, throbbing, 7/10",
+        "Photophobia and phonophobia present"
+      ],
+      labs: [
+        { name: "CBC", val: "Normal", ref: "—", flag: "" },
+        { name: "PT/INR", val: "1.0", ref: "0.8–1.2", flag: "" },
+        { name: "Protein C/S", val: "Normal", ref: "—", flag: "" },
+        { name: "Factor V Leiden", val: "Negative", ref: "—", flag: "" },
+        { name: "Antiphospholipid Ab", val: "Negative", ref: "—", flag: "" },
+        { name: "ESR", val: "12 mm/hr", ref: "<20", flag: "" }
+      ],
+      imaging: "CT head (arrival): No haemorrhage, no obvious infarct. MRI/DWI (2 hours later): No restricted diffusion. MRA: No occlusion, no dissection. EEG: Focal slow waves right hemisphere, no epileptiform discharges.",
+    }
+  },
+  {
+    id: 3, section: "Ch 10 — Neurology", tag: "10.3",
+    answer: ["parkinsonism", "secondary parkinsonism", "drug-induced parkinsonism", "vascular parkinsonism", "progressive supranuclear palsy", "psp"],
+    hint: "Parkinson-like features but something is wrong with the eye movements and the falls are backwards, not forwards.",
+    ref: "Greenberg §10.3.3, p. 193",
+    case: {
+      title: "The retired pharmacist who falls backwards",
+      patient: { name: "Abe L.", age: 69, sex: "M", emoji: "👴" },
+      demographics: "69 M • Retired pharmacist • Hypertension, dyslipidaemia",
+      vitals: { BP: "148/88", HR: "68", RR: "14", T: "36.9°C", O2: "97%" },
+      narrative: `A 69-year-old retired pharmacist presents with a 2-year history of progressive gait instability and falls. His wife notes he falls backwards — unexpectedly, like a tree, without stumbling first. He has a slight tremor but it is predominantly postural, not resting. He complains of diplopia and difficulty reading — specifically reading a newspaper (near vision). He has also noticed his voice has become quieter, and swallowing is mildly impaired. His primary care physician started levodopa 6 months ago with no benefit. On examination, there is axial rigidity greater than limb rigidity. His face is hypomimic with a characteristic wide-eyed, staring expression. Levodopa trial has been inadequate.`,
+      neurological: [
+        "Vertical gaze palsy — inability to look downward voluntarily (upgaze mildly limited)",
+        "Absence of corrective saccades on oculocephalic manoeuvre (intact reflex eye movements)",
+        "Axial > appendicular rigidity; symmetric",
+        "Postural instability: retropulsion on pull test",
+        "Mild frontal lobe cognitive features (perseveration)",
+        "Dysarthria: slurred, hypernasal quality; mild dysphagia"
+      ],
+      labs: [
+        { name: "Ceruloplasmin", val: "0.32 g/L", ref: "0.2–0.6", flag: "" },
+        { name: "Copper 24h urine", val: "Normal", ref: "—", flag: "" },
+        { name: "CK", val: "Normal", ref: "—", flag: "" },
+        { name: "Genetic panel (PARK1–9)", val: "Negative", ref: "—", flag: "" }
+      ],
+      imaging: "MRI brain: midbrain atrophy — sagittal image shows a 'hummingbird sign' (midbrain:pons ratio reduced). Mild third ventricle widening. FDG-PET: frontal and midbrain hypometabolism. DaTscan: reduced DAT uptake, symmetric.",
+    }
+  },
+  {
+    id: 4, section: "Ch 10 — Neurology", tag: "10.4",
+    answer: ["multiple sclerosis", "ms", "relapsing remitting ms", "rrms"],
+    hint: "McDonald criteria: dissemination in time AND space. Look for two episodes, two different CNS locations.",
+    ref: "Greenberg §10.4, p. 194",
+    case: {
+      title: "The nurse with tingling feet and a temporary blind eye",
+      patient: { name: "Fatima O.", age: 32, sex: "F", emoji: "👩" },
+      demographics: "32 F • Paediatric nurse • No significant medical history",
+      vitals: { BP: "116/72", HR: "76", RR: "15", T: "37.0°C", O2: "99%" },
+      narrative: `A 32-year-old nurse presents to neurology outpatient with a 6-week history of bilateral leg tingling, gait unsteadiness, and an embarrassing episode of urinary urgency. Two years previously she experienced 10 days of painless blurred vision in her right eye (diagnosed as optic neuritis, treated with IV methylprednisolone, fully recovered). Now, on a hot summer day at work, she notices her legs feel weaker and tingling worsens — her colleagues observe her limping. She has a positive Lhermitte's phenomenon (electric shocks down the spine on neck flexion). She reports fatigue disproportionate to her work schedule for over a year.`,
+      neurological: [
+        "Lhermitte's sign positive",
+        "Mild paraparesis — 4+/5 bilaterally in lower extremities",
+        "Hyperreflexia at knees and ankles bilaterally; bilateral Babinski",
+        "Vibration sensation reduced below knees bilaterally",
+        "Internuclear ophthalmoplegia (INO) — right eye fails to adduct on left lateral gaze",
+        "Bladder dysfunction: frequency and urgency"
+      ],
+      labs: [
+        { name: "CSF IgG index", val: "0.72", ref: "<0.66", flag: "abnormal" },
+        { name: "CSF oligoclonal bands", val: "4 bands (absent in serum)", ref: "Absent", flag: "abnormal" },
+        { name: "CSF cell count", val: "9 lymphocytes/μL", ref: "<5", flag: "abnormal" },
+        { name: "AQP4-IgG (NMO-IgG)", val: "Negative", ref: "—", flag: "" },
+        { name: "MOG-IgG", val: "Negative", ref: "—", flag: "" },
+        { name: "B12", val: "Normal", ref: "—", flag: "" }
+      ],
+      imaging: "MRI brain: >9 T2 periventricular and juxtacortical lesions, several perpendicular to corpus callosum (Dawson's fingers). One Gd-enhancing lesion in right hemisphere. MRI spine: Two T2 lesions, cervical cord C3–4 and T6, <3 vertebral segments each.",
+    }
+  },
+  {
+    id: 5, section: "Ch 10 — Neurology", tag: "10.5",
+    answer: ["adem", "acute disseminated encephalomyelitis", "acute demyelinating encephalomyelitis"],
+    hint: "Post-infectious, multifocal, encephalopathy + demyelination — younger patient, rapid onset, preceded by viral illness or vaccination.",
+    ref: "Greenberg §10.5, p. 197",
+    case: {
+      title: "The child with fever, confusion and white matter changes",
+      patient: { name: "Yusuf A.", age: 9, sex: "M", emoji: "🧒" },
+      demographics: "9 M • Primary school pupil • 2 weeks post-viral URTI",
+      vitals: { BP: "102/64", HR: "104", RR: "22", T: "38.1°C", O2: "96%" },
+      narrative: `A 9-year-old boy is admitted with 4 days of progressive behavioural change — increasingly confused, refusing food, and having two generalised seizures at home. His parents report he had a typical upper respiratory tract infection 14 days ago, recovered, and then 10 days later became irritable and febrile. He is now somnolent and does not recognise his parents. There is no history of prior neurological disease. He received routine childhood vaccinations including MMR 6 weeks ago. He has no rash and no meningismus. He has no family history of autoimmune or demyelinating disease.`,
+      neurological: [
+        "Encephalopathy — GCS 12 (E3V4M5)",
+        "Bilateral optic disc pallor — recent onset",
+        "Right-sided hemiparesis — 3/5 upper limb, 4/5 lower limb",
+        "Ataxia when aroused and asked to sit",
+        "No focal cranial nerve palsy",
+        "Bilateral extensor plantar responses"
+      ],
+      labs: [
+        { name: "WBC", val: "14.2 × 10⁹/L", ref: "4–11", flag: "abnormal" },
+        { name: "CRP", val: "38 mg/L", ref: "<10", flag: "abnormal" },
+        { name: "CSF WBC", val: "32 lymphocytes/μL", ref: "<5", flag: "abnormal" },
+        { name: "CSF protein", val: "0.68 g/L", ref: "<0.45", flag: "abnormal" },
+        { name: "CSF oligoclonal bands", val: "Absent", ref: "—", flag: "" },
+        { name: "CSF PCR (HSV, EBV, CMV)", val: "Negative", ref: "—", flag: "" },
+        { name: "AQP4-IgG", val: "Negative", ref: "—", flag: "" },
+        { name: "MOG-IgG", val: "Positive", ref: "—", flag: "abnormal" }
+      ],
+      imaging: "MRI brain: Large, bilateral, asymmetric T2/FLAIR hyperintense lesions in subcortical white matter, basal ganglia, and thalami. Poorly defined margins. No Dawson's fingers. Gadolinium: patchy ring-enhancement in some lesions. Spine: T2 lesion at C3–5, >3 segments.",
+    }
+  },
+  {
+    id: 6, section: "Ch 10 — Neurology", tag: "10.6",
+    answer: ["als", "amyotrophic lateral sclerosis", "motor neuron disease", "mnd", "lou gehrig"],
+    hint: "Upper AND lower motor neuron signs in the same patient, no sensory findings, progressive, El Escorial criteria.",
+    ref: "Greenberg §10.6.2, p. 197",
+    case: {
+      title: "The engineer with twitching muscles and a hyperactive jaw jerk",
+      patient: { name: "Dmitri K.", age: 58, sex: "M", emoji: "👨" },
+      demographics: "58 M • Civil engineer • Non-smoker, no toxic exposures",
+      vitals: { BP: "132/80", HR: "74", RR: "16", T: "36.8°C", O2: "98%" },
+      narrative: `A 58-year-old civil engineer presents with an 18-month history of progressive weakness. He first noticed difficulty unscrewing jar lids, then stumbled on stairs. In the past 6 months his speech has become slurred and he has occasional difficulty swallowing liquids. He is aware of visible muscle twitching in his arms and thighs — described as "worms moving under the skin." He denies sensory symptoms, bladder/bowel problems, or vision changes. He is deeply distressed: his father died of a similar illness at age 62. On examination there is a striking combination of brisk reflexes in wasted limbs.`,
+      neurological: [
+        "Fasciculations visible in deltoids, biceps, thenar, and quadriceps",
+        "Wasting of intrinsic hand muscles bilaterally",
+        "Finger extensors: 3/5 bilaterally; hip flexors: 4/5",
+        "Brisk reflexes throughout — including in wasted regions (pathological)",
+        "Jaw jerk markedly hyperactive — pseudobulbar affect",
+        "Spastic dysarthria; swallowing intact but effortful",
+        "No sensory deficit on any modality",
+        "Babinski present bilaterally"
+      ],
+      labs: [
+        { name: "CK", val: "488 U/L", ref: "30–200", flag: "abnormal" },
+        { name: "Aldolase", val: "Normal", ref: "—", flag: "" },
+        { name: "Anti-GM1 Ab", val: "Negative", ref: "—", flag: "" },
+        { name: "Heavy metals screen", val: "Negative", ref: "—", flag: "" },
+        { name: "VGCC antibodies", val: "Negative", ref: "—", flag: "" },
+        { name: "SOD1 mutation", val: "Positive (familial)", ref: "—", flag: "abnormal" }
+      ],
+      imaging: "MRI brain: T2/FLAIR signal along the corticospinal tracts bilaterally (corticospinal tract hyperintensity). No structural lesion. MRI spine: Normal cord signal. EMG: Active denervation (fibrillations, positive sharp waves) and chronic reinnervation in ≥3 limb regions plus bulbar region; normal sensory NCS.",
+    }
+  },
+  {
+    id: 7, section: "Ch 10 — Neurology", tag: "10.7",
+    answer: ["guillain barre syndrome", "gbs", "miller fisher syndrome", "mfs", "fisher syndrome"],
+    hint: "Ascending or descending? Areflexia + ophthalmoplegia + ataxia without limb weakness = a variant. Check the anti-ganglioside antibody.",
+    ref: "Greenberg §10.7.3, p. 201",
+    case: {
+      title: "The 45-year-old with drooping eyelids, a staggering gait, and no reflexes — but no limb weakness",
+      patient: { name: "Soo-Jin P.", age: 45, sex: "F", emoji: "👩" },
+      demographics: "45 F • Accountant • 10 days post-campylobacter gastroenteritis",
+      vitals: { BP: "122/78", HR: "86", RR: "17", T: "37.2°C", O2: "98%" },
+      narrative: `A 45-year-old accountant presents with a 5-day history of progressive ptosis, double vision, and unsteady gait. Ten days ago she had a 3-day illness of watery diarrhoea and abdominal cramps attributed to a restaurant meal. Now she cannot fully open her eyes and veers to the right when walking. There is no limb weakness — she can climb stairs and rise from a chair without difficulty. She has no pain. Her family is alarmed by her appearance. She has no prior neurological disease. A junior doctor initially queried a midbrain lesion.`,
+      neurological: [
+        "Bilateral complete ophthalmoplegia — no eye movement in any direction",
+        "Bilateral ptosis (orbicularis oculi strength preserved)",
+        "Cerebellar-type ataxia — wide-based gait, unable to tandem walk",
+        "Areflexia — globally absent deep tendon reflexes",
+        "Upper and lower limb strength 5/5 throughout",
+        "Mild facial weakness bilaterally",
+        "Sensation intact on all modalities"
+      ],
+      labs: [
+        { name: "Anti-GQ1b IgG", val: "Strongly positive 1:3200", ref: "Negative", flag: "critical" },
+        { name: "Anti-GM1", val: "Negative", ref: "—", flag: "" },
+        { name: "Anti-GD1b", val: "Positive (low titre)", ref: "—", flag: "abnormal" },
+        { name: "CSF protein", val: "0.95 g/L", ref: "<0.45", flag: "abnormal" },
+        { name: "CSF WBC", val: "2 lymphocytes/μL", ref: "<5", flag: "" },
+        { name: "Campylobacter stool PCR", val: "Positive", ref: "—", flag: "abnormal" }
+      ],
+      imaging: "MRI brain/brainstem: No enhancement of cranial nerve nuclei. No midbrain lesion. Nerve conduction studies: absent H reflexes; markedly prolonged distal latencies with reduced amplitudes of sural and median sensory nerves.",
+    }
+  },
+  {
+    id: 8, section: "Ch 10 — Neurology", tag: "10.8",
+    answer: ["transverse myelitis", "acute transverse myelitis", "myelitis", "neuromyelitis optica", "nmo", "nmosd"],
+    hint: "Complete spinal cord syndrome + a previous optic neuritis episode + CSF inflammatory changes. Consider the aquaporin-4 antibody.",
+    ref: "Greenberg §10.8, p. 202",
+    case: {
+      title: "The 37-year-old woman who lost her legs in 48 hours",
+      patient: { name: "Adaeze N.", age: 37, sex: "F", emoji: "👩" },
+      demographics: "37 F • Schoolteacher • Previous 'optic neuritis' right eye age 31",
+      vitals: { BP: "118/74", HR: "92", RR: "18", T: "37.4°C", O2: "98%" },
+      narrative: `A 37-year-old teacher presents with a 48-hour progression to paraplegia. Two days ago she developed severe mid-thoracic back pain, followed rapidly by bilateral leg tingling, ascending leg weakness, urinary retention, and loss of bowel control. She is now unable to move her legs at all. Six years ago she had an episode of painful visual loss in her right eye lasting 3 weeks, partially recovered. An MRI at that time reportedly showed a "cord lesion" but she was told it was probably MS and not started on disease-modifying therapy. She is of West African descent. She denies recent infection or vaccination.`,
+      neurological: [
+        "Complete paraplegia — bilateral leg strength 0/5",
+        "Sensory level at T6 — complete loss of all modalities below",
+        "Absent lower limb reflexes (spinal shock phase)",
+        "Urinary retention — catheterised in ED",
+        "Bilateral Babinski present (elicited with Oppenheim's manoeuvre)",
+        "Right eye: RAPD present, colour vision impaired, VA 6/12",
+        "Hiccoughs — intractable, 3 days"
+      ],
+      labs: [
+        { name: "AQP4-IgG (NMO-IgG)", val: "1:1024 positive", ref: "Negative", flag: "critical" },
+        { name: "MOG-IgG", val: "Negative", ref: "—", flag: "" },
+        { name: "CSF WBC", val: "55 neutrophils + lymphocytes/μL", ref: "<5", flag: "critical" },
+        { name: "CSF protein", val: "1.2 g/L", ref: "<0.45", flag: "critical" },
+        { name: "CSF oligoclonal bands", val: "Absent", ref: "—", flag: "" },
+        { name: "ANA, anti-dsDNA", val: "Negative", ref: "—", flag: "" }
+      ],
+      imaging: "MRI spine (T2): Longitudinally extensive cord lesion C3–T8 (>3 vertebral segments), central, bright, with partial gadolinium enhancement. MRI brain: Area postrema lesion (dorsal medulla T2 signal) — explains intractable hiccoughs. Previous right optic nerve enhancement on fat-sat T1 Gd.",
+    }
+  },
+  {
+    id: 9, section: "Ch 10 — Neurology", tag: "10.9",
+    answer: ["neurosarcoidosis", "sarcoidosis", "sarcoid"],
+    hint: "Multisystem disease + cranial neuropathies + CSF inflammation + lung findings + elevated ACE. Biopsy the most accessible lesion.",
+    ref: "Greenberg §10.9, p. 204",
+    case: {
+      title: "The 34-year-old with facial palsy, leg weakness, and a lung shadow",
+      patient: { name: "Marcus T.", age: 34, sex: "M", emoji: "👨" },
+      demographics: "34 M • IT consultant • Afro-Caribbean background, non-smoker",
+      vitals: { BP: "128/82", HR: "78", RR: "16", T: "37.6°C", O2: "97%" },
+      narrative: `A 34-year-old IT consultant of Afro-Caribbean descent presents with a 3-month history of progressive bilateral facial weakness (left worse than right), blurred vision in the right eye, and tingling in both feet ascending to the knees. He had a 6-week course of prednisolone for a skin rash diagnosed as erythema nodosum 4 months ago, which improved. He has a dry cough for 3 months. He recently noted difficulty urinating. On review of systems: fever with night sweats 3 months ago; 6 kg unintentional weight loss; joint pain in ankles. He was initially investigated for lymphoma.`,
+      neurological: [
+        "Bilateral lower motor neuron facial palsy (grade III right, grade IV left)",
+        "Right eye: anterior uveitis; optic disc swelling; VA 6/9",
+        "Lower limb weakness: hip flexors 4/5, foot dorsiflexion 3/5 bilaterally",
+        "Sensory loss: stocking distribution both feet, vibration absent below ankles",
+        "Areflexia at ankles bilaterally",
+        "Mild bladder dysfunction — large post-void residual"
+      ],
+      labs: [
+        { name: "Serum ACE", val: "78 U/L", ref: "8–52", flag: "abnormal" },
+        { name: "Serum calcium", val: "2.82 mmol/L", ref: "2.15–2.55", flag: "abnormal" },
+        { name: "24h urine calcium", val: "Elevated (8.4 mmol/d)", ref: "<7.5", flag: "abnormal" },
+        { name: "LDH", val: "290 U/L", ref: "<250", flag: "abnormal" },
+        { name: "IL-2 receptor", val: "Elevated (2480 U/mL)", ref: "<710", flag: "critical" },
+        { name: "CSF protein", val: "1.1 g/L", ref: "<0.45", flag: "critical" },
+        { name: "CSF WBC", val: "68 lymphocytes/μL", ref: "<5", flag: "critical" },
+        { name: "CSF ACE", val: "Elevated", ref: "—", flag: "abnormal" }
+      ],
+      imaging: "MRI brain: Leptomeningeal enhancement (cranial base). T2 lesions in brainstem. Gd: enhancement of bilateral facial nerve canals. MRI spine: Cauda equina nerve root enhancement. CXR/CT chest: bilateral hilar lymphadenopathy; pulmonary infiltrates consistent with stage II sarcoidosis.",
+    }
+  },
+  // ══════════════ CH 11 — NEUROVASCULAR DISORDERS ══════════════
+  {
+    id: 10, section: "Ch 11 — Neurovascular", tag: "11.1",
+    answer: ["pres", "posterior reversible encephalopathy syndrome", "reversible posterior leukoencephalopathy", "rpls"],
+    hint: "Think about the setting: hypertensive crisis, eclampsia, immunosuppressants, or renal failure. Posterior white matter oedema, often reversible.",
+    ref: "Greenberg §11.1, p. 209",
+    case: {
+      title: "The 29-year-old postpartum woman with seizures and posterior white matter changes",
+      patient: { name: "Mei-Ling C.", age: 29, sex: "F", emoji: "👩" },
+      demographics: "29 F • 5 days post-Caesarean • Primigravida, no prior neurological history",
+      vitals: { BP: "186/114", HR: "102", RR: "22", T: "37.9°C", O2: "94%" },
+      narrative: `A 29-year-old woman is brought to the emergency department 5 days after a Caesarean section for pre-eclampsia at 37 weeks. She had two generalised tonic-clonic seizures at home. Her husband reports she has had severe headaches since delivery, confusion since this morning, and that her vision has been "blurry" for 24 hours — she described it as "not being able to see properly on both sides." On examination she is agitated, confused (GCS 13), and her blood pressure is 186/114. There is no focal weakness or cranial nerve palsy. Fundoscopy reveals bilateral papilloedema and flame haemorrhages.`,
+      neurological: [
+        "GCS 13 — confused, not obeying commands consistently",
+        "Bilateral homonymous hemianopia on confrontation testing",
+        "No focal motor weakness",
+        "Hyperreflexia; clonus at both ankles",
+        "No meningismus",
+        "Fundoscopy: papilloedema grade 3, flame haemorrhages"
+      ],
+      labs: [
+        { name: "Platelet count", val: "82 × 10⁹/L", ref: "150–400", flag: "critical" },
+        { name: "LDH", val: "890 U/L", ref: "<250", flag: "critical" },
+        { name: "AST", val: "142 U/L", ref: "<40", flag: "critical" },
+        { name: "Haptoglobin", val: "Undetectable", ref: ">0.3", flag: "critical" },
+        { name: "Creatinine", val: "156 μmol/L", ref: "45–90", flag: "abnormal" },
+        { name: "Urine protein/creatinine ratio", val: "480 mg/mmol", ref: "<30", flag: "critical" }
+      ],
+      imaging: "MRI brain FLAIR: Bilateral symmetric hyperintensity in posterior parietal and occipital cortex and subcortical white matter. No restricted diffusion on DWI (distinguishes from infarct). MRA: Mild vasospasm posterior circulation. No haemorrhage on GRE/SWI.",
+    }
+  },
+  {
+    id: 11, section: "Ch 11 — Neurovascular", tag: "11.2",
+    answer: ["crossed cerebellar diaschisis", "cerebellar diaschisis", "diaschisis"],
+    hint: "Cerebellar findings contralateral to a supratentorial lesion. A neurophysiological effect, not a second structural lesion.",
+    ref: "Greenberg §11.2, p. 209",
+    case: {
+      title: "The stroke patient whose cerebellum lights up on the wrong side",
+      patient: { name: "Viktor H.", age: 67, sex: "M", emoji: "👴" },
+      demographics: "67 M • Retired, hypertensive • 3 weeks post-left MCA infarct",
+      vitals: { BP: "142/86", HR: "76", RR: "15", T: "36.9°C", O2: "97%" },
+      narrative: `A 67-year-old man is reviewed 3 weeks after a documented left MCA territory infarct. He has right hemiparesis and mild aphasia, recovering well in rehabilitation. His team is puzzled by two findings: first, his rehabilitation progress is slower than expected given the infarct size; second, a SPECT scan done for research purposes shows unexpectedly reduced perfusion in the right cerebellar hemisphere — an area with no structural lesion on MRI. He complains of intermittent dizziness and mild right-sided dysmetria. He has never had a posterior fossa event. His right MRI cerebellum is structurally normal.`,
+      neurological: [
+        "Right hemiparesis (arm > leg) — residual from left MCA stroke",
+        "Broca's aphasia — improving",
+        "Right-sided intention tremor and dysmetria (ipsilateral to cerebellar hypoperfusion, contralateral to infarct)",
+        "Gait ataxia — disproportionate to hemiparesis severity",
+        "Nystagmus absent",
+        "No cerebellar lesion on structural MRI"
+      ],
+      labs: [
+        { name: "CBC, BMP", val: "Normal", ref: "—", flag: "" },
+        { name: "Lipids", val: "LDL 3.8 mmol/L", ref: "<2.6", flag: "abnormal" }
+      ],
+      imaging: "MRI brain: Left MCA territory infarct, no new lesion. Right cerebellum: structurally normal signal. SPECT/PET: Markedly reduced uptake in right cerebellar hemisphere (contralateral to the left cortical lesion). No posterior fossa infarct or structural lesion on any MRI sequence.",
+    }
+  },
+  {
+    id: 12, section: "Ch 11 — Neurovascular", tag: "11.3.2",
+    answer: ["giant cell arteritis", "gca", "temporal arteritis", "cranial arteritis"],
+    hint: "Age >50, elevated ESR/CRP, jaw claudication, scalp tenderness, risk of blindness — temporal artery biopsy is diagnostic but start steroids immediately.",
+    ref: "Greenberg §11.3.2, p. 210",
+    case: {
+      title: "The 72-year-old who will go blind if you don't diagnose her tonight",
+      patient: { name: "Margarethe W.", age: 72, sex: "F", emoji: "👵" },
+      demographics: "72 F • Retired baker • Hypertension, polymyalgia rheumatica (diagnosed 8 months ago)",
+      vitals: { BP: "156/94", HR: "82", RR: "15", T: "37.8°C", O2: "97%" },
+      narrative: `A 72-year-old woman presents to the emergency department with a 3-day history of new-onset severe right-sided headache and tenderness when combing her hair. For the past 6 months she has been on low-dose prednisolone for polymyalgia rheumatica, but her GP reduced the dose 3 weeks ago. This morning she experienced a 20-minute episode of complete visual loss in the right eye — "like a curtain descending" — that partially resolved, leaving her with blurred vision. She describes jaw pain when chewing for the past month. She is nauseated and refuses to eat. On examination, the right temporal artery is nodular, non-pulsatile, and exquisitely tender on palpation.`,
+      neurological: [
+        "Right temporal artery: thickened, cord-like, tender, non-pulsatile",
+        "Right eye: VA 6/36 (down from 6/6 six months ago); RAPD present",
+        "Fundoscopy right: pallid swollen optic disc — ischaemic optic neuropathy",
+        "Left eye: VA 6/6; normal disc",
+        "No other cranial nerve deficit",
+        "Neck flexion unrestricted, meningismus absent",
+        "Shoulder and hip girdle muscle stiffness and tenderness"
+      ],
+      labs: [
+        { name: "ESR", val: "118 mm/hr", ref: "<20", flag: "critical" },
+        { name: "CRP", val: "88 mg/L", ref: "<10", flag: "critical" },
+        { name: "Platelet count", val: "512 × 10⁹/L", ref: "150–400", flag: "abnormal" },
+        { name: "Fibrinogen", val: "6.8 g/L", ref: "2–4", flag: "abnormal" },
+        { name: "Alkaline phosphatase", val: "186 U/L", ref: "<120", flag: "abnormal" },
+        { name: "IL-6", val: "48 pg/mL", ref: "<3", flag: "critical" }
+      ],
+      imaging: "Colour Doppler ultrasound temporal artery: Halo sign around right temporal artery (hypoechoic ring). CT angiography: Mural thickening and enhancement of bilateral temporal arteries and aortic arch branches.",
+    }
+  },
+  {
+    id: 13, section: "Ch 11 — Neurovascular", tag: "11.3.3",
+    answer: ["polymyalgia rheumatica", "pmr"],
+    hint: "Shoulder and hip girdle stiffness in an elderly patient, dramatic steroid response, normal strength but elevated ESR. No GCA features here.",
+    ref: "Greenberg §11.3.3, p. 213",
+    case: {
+      title: "The elderly woman who cannot lift her arms above her head",
+      patient: { name: "Ingrid S.", age: 68, sex: "F", emoji: "👵" },
+      demographics: "68 F • Retired librarian • Hypothyroidism (stable), no prior rheumatological history",
+      vitals: { BP: "134/82", HR: "74", RR: "14", T: "37.5°C", O2: "98%" },
+      narrative: `A 68-year-old woman presents with a 6-week history of severe bilateral shoulder pain and stiffness, particularly in the morning — lasting over 90 minutes. She cannot raise her arms above her head to hang laundry. Hip and pelvic girdle aching began 2 weeks later. She feels systemically unwell with fatigue and a low-grade fever. She is afraid she has cancer. On examination, there is marked tenderness of the shoulder girdle; active abduction limited to 60° bilaterally due to pain, but passive range of motion is preserved. Formal muscle strength testing is limited by pain but appears grossly normal. No synovitis of small joints. No temporal artery abnormality.`,
+      neurological: [
+        "Shoulder abduction limited (pain-limited, not weakness)",
+        "Normal grip strength and fine motor skills",
+        "No temporal artery tenderness",
+        "No cranial nerve deficits",
+        "No visual symptoms",
+        "Intact reflexes throughout"
+      ],
+      labs: [
+        { name: "ESR", val: "92 mm/hr", ref: "<20", flag: "critical" },
+        { name: "CRP", val: "56 mg/L", ref: "<10", flag: "critical" },
+        { name: "RF", val: "Negative", ref: "—", flag: "" },
+        { name: "Anti-CCP", val: "Negative", ref: "—", flag: "" },
+        { name: "CK", val: "Normal", ref: "—", flag: "" },
+        { name: "TSH", val: "2.4 mIU/L", ref: "0.4–4.0", flag: "" },
+        { name: "Ferritin", val: "420 μg/L", ref: "13–150", flag: "abnormal" }
+      ],
+      imaging: "PET-CT: FDG uptake in bilateral shoulder bursae, hip bursae, and acromioclavicular joints — classic for PMR. No vessel wall uptake (no GCA). No lymphadenopathy. Normal bone marrow.",
+    }
+  },
+  {
+    id: 14, section: "Ch 11 — Neurovascular", tag: "11.3.4",
+    answer: ["anca vasculitis", "granulomatosis with polyangiitis", "gpa", "wegener", "wegener's granulomatosis", "anca associated vasculitis"],
+    hint: "Sinusitis + lung nodules + renal failure + neurological symptoms + cANCA/PR3-ANCA in a young adult.",
+    ref: "Greenberg §11.3.4, p. 215",
+    case: {
+      title: "The 38-year-old with a saddle-nose, bloody urine, and cranial nerve palsies",
+      patient: { name: "Tobias R.", age: 38, sex: "M", emoji: "👨" },
+      demographics: "38 M • Carpenter • Chronic sinusitis (treated empirically for 2 years)",
+      vitals: { BP: "158/102", HR: "96", RR: "20", T: "38.4°C", O2: "93%" },
+      narrative: `A 38-year-old carpenter presents with a 3-month history of progressive sinusitis with bloody nasal discharge, haemoptysis, and now a new hearing loss in the right ear. He has had recurrent otitis media for years. Two weeks ago he noticed his nose bridge appeared to have collapsed. He now presents with bilateral feet numbness and right-sided facial pain/weakness. Urine dipstick at his GP showed blood and protein. He has lost 8 kg in 3 months. His creatinine has risen from a normal baseline (measured 8 months ago) to 286 μmol/L today. He was initially referred to ENT for his sinusitis.`,
+      neurological: [
+        "Right peripheral facial nerve palsy (LMN pattern)",
+        "Right conductive and sensorineural hearing loss",
+        "Bilateral feet and lower leg sensory loss — stocking distribution",
+        "Foot drop developing — bilateral extensor digitorum brevis wasting",
+        "Mononeuritis multiplex pattern (right common peroneal + left ulnar affected)"
+      ],
+      labs: [
+        { name: "Creatinine", val: "286 μmol/L", ref: "62–106", flag: "critical" },
+        { name: "Urine RBC casts", val: "Present", ref: "Absent", flag: "critical" },
+        { name: "Urine protein/Cr", val: "820 mg/mmol", ref: "<30", flag: "critical" },
+        { name: "cANCA (PR3-ANCA)", val: "Positive 1:640", ref: "Negative", flag: "critical" },
+        { name: "pANCA (MPO-ANCA)", val: "Negative", ref: "—", flag: "" },
+        { name: "CRP", val: "74 mg/L", ref: "<10", flag: "critical" },
+        { name: "Complement (C3, C4)", val: "Normal", ref: "—", flag: "" }
+      ],
+      imaging: "CT sinuses: pansinusitis, septal perforation, saddle-nose deformity. CT chest: bilateral pulmonary nodules with cavitation. MRI brain: pachymeningeal enhancement. Nerve conduction study: multifocal axonal sensorimotor neuropathy.",
+    }
+  },
+  {
+    id: 15, section: "Ch 11 — Neurovascular", tag: "11.3.5",
+    answer: ["sle", "systemic lupus erythematosus", "neuropsychiatric lupus", "lupus"],
+    hint: "Young woman, multi-organ involvement, serositis, renal disease, AND neurological features. Check anti-dsDNA and complement.",
+    ref: "Greenberg §11.3.5, p. 216",
+    case: {
+      title: "The 24-year-old with a butterfly rash, seizures, and psychosis",
+      patient: { name: "Anastasia V.", age: 24, sex: "F", emoji: "👩" },
+      demographics: "24 F • Medical student • Mild joint pain for 2 years attributed to 'anxiety'",
+      vitals: { BP: "144/92", HR: "104", RR: "20", T: "38.2°C", O2: "97%" },
+      narrative: `A 24-year-old medical student is admitted after a first generalised tonic-clonic seizure. Her roommate reports she has been increasingly confused and paranoid for 2 weeks — accusing others of stealing her belongings, having auditory hallucinations. She has a history of intermittent joint pain and swelling in her hands, recurrent oral ulcers, and hair loss for 2 years. She had a brief episode of pleuritic chest pain 4 months ago. On examination, a malar rash is noted — erythema across both cheeks sparing the nasolabial folds. She is febrile. Urine dipstick: ++ protein, +++ blood.`,
+      neurological: [
+        "Post-ictal confusion — GCS improving to 14 over 1 hour",
+        "Paranoid ideation — not explained by post-ictal state",
+        "Mild meningismus (Kernig positive) — differential includes bacterial meningitis",
+        "No focal motor deficit",
+        "Chorea-like movements — mild, right hand",
+        "Fundoscopy: retinal vasculitis (flame haemorrhages, cotton wool spots)"
+      ],
+      labs: [
+        { name: "ANA", val: "1:1280 speckled pattern", ref: "Negative", flag: "critical" },
+        { name: "Anti-dsDNA", val: "Highly positive (480 IU/mL)", ref: "<10", flag: "critical" },
+        { name: "Complement C3", val: "0.42 g/L", ref: "0.9–1.8", flag: "critical" },
+        { name: "Complement C4", val: "0.06 g/L", ref: "0.16–0.47", flag: "critical" },
+        { name: "Antiphospholipid Ab (aCL IgG)", val: "Positive", ref: "Negative", flag: "abnormal" },
+        { name: "Coombs test", val: "Positive (haemolytic anaemia)", ref: "Negative", flag: "abnormal" },
+        { name: "CSF WBC", val: "28 lymphocytes/μL", ref: "<5", flag: "abnormal" }
+      ],
+      imaging: "MRI brain: Multiple small T2/FLAIR hyperintensities in white matter bilaterally; cortical signal abnormalities. No large territory infarct. MRA: Beading of small cortical vessels. EEG: Diffuse slowing, no epileptiform discharges.",
+    }
+  },
+  {
+    id: 16, section: "Ch 11 — Neurovascular", tag: "11.3.6",
+    answer: ["lymphomatoid granulomatosis", "lgx", "lymphomatoid granulomatosis ebv"],
+    hint: "EBV-driven angiocentric lymphoproliferative lesion — lung + brain + skin involvement. Not classic lymphoma but can transform. Often misdiagnosed as vasculitis.",
+    ref: "Greenberg §11.3.6, p. 217",
+    case: {
+      title: "The immunocompromised patient with lung nodules and brain lesions that stump the oncologist",
+      patient: { name: "Raymond L.", age: 52, sex: "M", emoji: "👨" },
+      demographics: "52 M • Transplant recipient (renal, 4 years) • On tacrolimus and mycophenolate",
+      vitals: { BP: "138/86", HR: "88", RR: "22", T: "37.8°C", O2: "91%" },
+      narrative: `A 52-year-old renal transplant recipient presents with a 3-month history of progressive dyspnoea, skin nodules, and a 2-week history of confusion and right-sided weakness. He has had multiple pulmonary nodules on serial CT, initially attributed to post-transplant lymphoproliferative disease; however, a PET-CT showed heterogeneous FDG avidity and a lung biopsy showed "angiocentric infiltrate with EBV-positive large B-cells" — the pathologist was unsure whether to call it lymphoma. Skin nodules on biopsy show the same angiocentric pattern. Now he has developed headache, right-sided weakness, and cognitive slowing.`,
+      neurological: [
+        "Right hemiparesis — 3/5 arm, 4/5 leg",
+        "Mild expressive aphasia",
+        "Cognitive slowing — impaired attention and working memory",
+        "No meningismus",
+        "Skin examination: multiple subcutaneous nodules on trunk and thighs"
+      ],
+      labs: [
+        { name: "EBV viral load (blood)", val: "12,400 copies/mL", ref: "Undetectable", flag: "critical" },
+        { name: "LDH", val: "520 U/L", ref: "<250", flag: "abnormal" },
+        { name: "Beta-2 microglobulin", val: "4.8 mg/L", ref: "<2.5", flag: "abnormal" },
+        { name: "HIV", val: "Negative", ref: "—", flag: "" },
+        { name: "CD4 count", val: "210 cells/μL", ref: "500–1500", flag: "abnormal" },
+        { name: "CSF EBV PCR", val: "Positive", ref: "Negative", flag: "critical" }
+      ],
+      imaging: "CT chest: Bilateral pulmonary nodules, cavitating, lower lobe predominant. MRI brain: Multiple T2 lesions at grey-white junction and deep white matter; Gd enhancement; one lesion shows central necrosis. PET-CT: heterogeneous FDG avidity in brain lesions (unlike primary CNS lymphoma which is uniformly hypermetabolic).",
+    }
+  },
+  {
+    id: 17, section: "Ch 11 — Neurovascular", tag: "11.3.7",
+    answer: ["behcet syndrome", "behcets disease", "behçet", "neuro-behcet", "neurobehcet"],
+    hint: "Recurrent oral ulcers + genital ulcers + uveitis + neurological involvement in a young patient from the Silk Road region.",
+    ref: "Greenberg §11.3.7, p. 217",
+    case: {
+      title: "The Turkish engineer with ulcers, red eyes, and a thunderclap headache",
+      patient: { name: "Mehmet A.", age: 31, sex: "M", emoji: "👨" },
+      demographics: "31 M • Electrical engineer • Born in Turkey, smokes",
+      vitals: { BP: "128/76", HR: "94", RR: "18", T: "37.7°C", O2: "99%" },
+      narrative: `A 31-year-old Turkish engineer presents with a sudden severe "thunderclap" headache 3 hours ago, now 9/10 in severity, with neck stiffness and photophobia. He is being worked up for subarachnoid haemorrhage. However, on careful history, he reveals recurrent painful oral ulcers since adolescence (3–4 episodes/year), two episodes of painful genital ulceration in the past year, and recurrent bilateral eye redness diagnosed as "iritis." He has also had erythema nodosum on his legs. The family physician never connected these findings. He notes the headache is different to his prior headaches — those were typically associated with the eye flares.`,
+      neurological: [
+        "Meningismus (Kernig and Brudzinski positive)",
+        "GCS 14 — mild confusion",
+        "No focal motor deficit",
+        "Bilateral papilloedema — grade 2",
+        "Left abducens (VI) palsy — diplopia on left lateral gaze",
+        "Pathergy test: positive (pustule formation at venepuncture site)"
+      ],
+      labs: [
+        { name: "CSF opening pressure", val: "38 cm H₂O (380 mmH₂O)", ref: "<25", flag: "critical" },
+        { name: "CSF WBC", val: "95 neutrophils/μL", ref: "<5", flag: "critical" },
+        { name: "CSF protein", val: "1.4 g/L", ref: "<0.45", flag: "critical" },
+        { name: "CSF glucose", val: "2.8 mmol/L (serum 5.6)", ref: "2/3 serum", flag: "" },
+        { name: "CSF xanthochromia", val: "Absent", ref: "—", flag: "" },
+        { name: "HLA-B51", val: "Positive", ref: "—", flag: "abnormal" },
+        { name: "CT head (pre-LP)", val: "No haemorrhage", ref: "—", flag: "" }
+      ],
+      imaging: "MRI brain: T2/FLAIR hyperintensity in brainstem (midbrain-pons junction) extending to thalamus — 'neuro-Behçet brainstem pattern.' No haemorrhage on GRE. MRV: Dural sinus thrombosis — superior sagittal sinus partially thrombosed.",
+    }
+  },
+  {
+    id: 18, section: "Ch 11 — Neurovascular", tag: "11.3.8",
+    answer: ["primary angiitis of the cns", "pacns", "isolated cns vasculitis", "primary cns vasculitis", "cnv"],
+    hint: "Young patient with stroke + headache + no systemic disease + normal systemic workup. Brain and/or spinal cord vessels only. Requires catheter angiography and often brain biopsy.",
+    ref: "Greenberg §11.3.8, p. 218",
+    case: {
+      title: "The young woman with multiple strokes and a completely normal rheumatology workup",
+      patient: { name: "Elena K.", age: 36, sex: "F", emoji: "👩" },
+      demographics: "36 F • Yoga instructor • Non-smoker, no drugs, no prior illness",
+      vitals: { BP: "118/72", HR: "70", RR: "14", T: "36.9°C", O2: "99%" },
+      narrative: `A 36-year-old yoga instructor presents with her third stroke over 14 months. The first episode at age 34 caused mild left hand weakness (attributed to migraine); the second caused a 2-week aphasia episode. Now she presents with right leg weakness. Each episode has been confirmed by MRI as new infarcts in different vascular territories. She has relentless non-positional headache for 8 months. Her rheumatologist has found no systemic vasculitis. She is not on oral contraceptives. No cardiac source found. Full thrombophilia screen negative. She is desperate and has seen 7 specialists.`,
+      neurological: [
+        "Right hemiparesis — 4/5 leg",
+        "Cognitive slowing on formal neuropsychological testing",
+        "Persistent non-positional diffuse headache",
+        "No systemic features (no rash, no joint disease, no lung/kidney involvement)",
+        "Prior MRIs showing small scattered infarcts in multiple territories"
+      ],
+      labs: [
+        { name: "ESR", val: "18 mm/hr", ref: "<20", flag: "" },
+        { name: "CRP", val: "2 mg/L", ref: "<10", flag: "" },
+        { name: "ANA, ANCA, anti-dsDNA", val: "All negative", ref: "—", flag: "" },
+        { name: "Antiphospholipid panel", val: "Negative × 3 tests", ref: "—", flag: "" },
+        { name: "Protein C/S, Factor V Leiden", val: "Normal", ref: "—", flag: "" },
+        { name: "CSF WBC", val: "22 lymphocytes/μL", ref: "<5", flag: "abnormal" },
+        { name: "CSF protein", val: "0.82 g/L", ref: "<0.45", flag: "abnormal" }
+      ],
+      imaging: "MRI brain: Multiple cortical and subcortical infarcts in multiple vascular territories (anterior and posterior circulation). DSA: Segmental narrowing ('beading') and dilation of medium and small CNS arteries bilaterally — not matching any single territory. CTA/MRA insufficient for small-vessel disease.",
+    }
+  },
+  {
+    id: 19, section: "Ch 11 — Neurovascular", tag: "11.3.9",
+    answer: ["hypersensitivity vasculitis", "drug-induced vasculitis", "small vessel vasculitis", "leukocytoclastic vasculitis"],
+    hint: "Drug exposure + palpable purpura (not just rash) + neurological symptoms + temporal relationship to a new medication.",
+    ref: "Greenberg §11.3.9, p. 218",
+    case: {
+      title: "The 55-year-old who developed a rash and a stroke two weeks after starting a new drug",
+      patient: { name: "Claude M.", age: 55, sex: "M", emoji: "👨" },
+      demographics: "55 M • Accountant • Started allopurinol 3 weeks ago for gout",
+      vitals: { BP: "136/84", HR: "84", RR: "16", T: "37.6°C", O2: "98%" },
+      narrative: `A 55-year-old accountant who was started on allopurinol 3 weeks ago for gout presents with a 10-day history of a rash on his legs, malaise, and now a 24-hour history of right-sided weakness and facial asymmetry. The rash began as small red spots that could be felt on palpation and did not blanch under a glass. He denies fever prior to the rash. His GP dismissed the rash as an allergic reaction. He has a creatinine of 186 μmol/L (previously normal). Urine dipstick shows microscopic haematuria and proteinuria.`,
+      neurological: [
+        "Right central facial palsy",
+        "Right arm weakness — 4/5 proximally, 3/5 distally",
+        "Mild right leg weakness — 4+/5",
+        "Lower limb examination: bilateral palpable purpura (non-blanching) from ankles to mid-thigh"
+      ],
+      labs: [
+        { name: "Eosinophils", val: "1.8 × 10⁹/L", ref: "<0.5", flag: "abnormal" },
+        { name: "Creatinine", val: "186 μmol/L", ref: "62–106", flag: "abnormal" },
+        { name: "Urine RBC casts", val: "Present", ref: "Absent", flag: "abnormal" },
+        { name: "ESR", val: "74 mm/hr", ref: "<20", flag: "abnormal" },
+        { name: "ANCA", val: "Negative", ref: "—", flag: "" },
+        { name: "Complement C3/C4", val: "Low", ref: "Normal", flag: "abnormal" },
+        { name: "IgA level", val: "Normal", ref: "—", flag: "" }
+      ],
+      imaging: "Skin biopsy: Leukocytoclastic vasculitis — neutrophilic infiltrate, fibrinoid necrosis, nuclear dust. MRI brain: Small cortical infarct left parietal lobe. MRA: Small vessel irregularity.",
+    }
+  },
+  {
+    id: 20, section: "Ch 11 — Neurovascular", tag: "11.3.10",
+    answer: ["fibromuscular dysplasia", "fmd"],
+    hint: "Young woman, hypertension, arterial dissection or stroke without atherosclerosis risk factors, 'string of beads' on angiography, often affects renal and cervical arteries.",
+    ref: "Greenberg §11.3.10, p. 216",
+    case: {
+      title: "The 34-year-old with a spontaneous carotid dissection and hard-to-control blood pressure",
+      patient: { name: "Sophie B.", age: 34, sex: "F", emoji: "👩" },
+      demographics: "34 F • Yoga instructor, non-smoker, BMI 22 • No prior cardiac or vascular history",
+      vitals: { BP: "168/104 right arm, 162/100 left arm", HR: "78", RR: "15", T: "36.8°C", O2: "99%" },
+      narrative: `A 34-year-old yoga instructor presents with a 2-day history of right-sided neck pain, right-sided Horner syndrome (ptosis, miosis, anhidrosis), and left-sided arm and face tingling. She denies trauma. She was found to be hypertensive at a routine health check 2 years ago, requiring two antihypertensives, which surprised her GP given her age and fitness. She has no diabetes, no hypercholesterolaemia, no family history of stroke. A CT angiogram of the head and neck has been ordered by the ED registrar for suspected carotid dissection. Her bilateral renal bruits are noted by a medical student on examination.`,
+      neurological: [
+        "Right Horner syndrome (ptosis, miosis, anhidrosis — postganglionic)",
+        "Left arm and face hypoalgesia (crossed pattern — right neck structure affecting ipsilateral sympathetics)",
+        "Mild left-sided dysarthria",
+        "No limb weakness",
+        "Bilateral renal bruits noted on auscultation"
+      ],
+      labs: [
+        { name: "Lipids", val: "Normal", ref: "—", flag: "" },
+        { name: "HbA1c", val: "Normal", ref: "—", flag: "" },
+        { name: "Antiphospholipid panel", val: "Negative", ref: "—", flag: "" },
+        { name: "Connective tissue genetics (COL3A1, FBN1)", val: "Negative", ref: "—", flag: "" },
+        { name: "Plasma renin activity", val: "Elevated (8.4 ng/mL/hr)", ref: "0.5–3.5", flag: "abnormal" }
+      ],
+      imaging: "CTA neck: Right internal carotid artery dissection — intramural haematoma, narrowed true lumen, flame-shaped occlusion at C2 level. Bilateral renal artery CTA: 'string of beads' appearance (alternating stenosis and dilatation) in medial fibromuscular dysplasia pattern. Head CTA: right MCA territory at risk — no infarct yet.",
+    }
+  },
+  {
+    id: 21, section: "Ch 11 — Neurovascular", tag: "11.3.11a",
+    answer: ["moyamoya disease", "moyamoya"],
+    hint: "Progressive stenosis of the ICA and its branches in a young patient. 'Puff of smoke' on angiography. Asian predisposition. Strokes AND haemorrhage possible.",
+    ref: "Greenberg §11.3.11, p. 218",
+    case: {
+      title: "The 8-year-old who has strokes when she cries",
+      patient: { name: "Yuki T.", age: 8, sex: "F", emoji: "🧒" },
+      demographics: "8 F • Elementary school student • Japanese-American",
+      vitals: { BP: "102/64", HR: "96", RR: "22", T: "36.8°C", O2: "98%" },
+      narrative: `An 8-year-old Japanese-American girl is brought in by her parents after a 30-minute episode of right arm weakness and speech difficulty that resolved completely. They report this is her fourth such episode over 2 years. Three of these episodes occurred during or immediately after crying, blowing up balloons, or vigorous play — activities associated with hyperventilation. Her parents have noticed she is slightly behind in school. Her maternal aunt had a "brain haemorrhage" at age 24. MRI shows prior small infarcts in both anterior cerebral artery territories. An MRA shows severely narrowed internal carotid arteries bilaterally.`,
+      neurological: [
+        "Post-ictally: right arm drift, mildly dysarthric (improving during exam)",
+        "Cognitive assessment: borderline for age on standardised testing",
+        "Mild right pyramidal signs — hyperreflexia, extensor plantar",
+        "Cranial nerves intact",
+        "Prior MRI: bilateral watershed infarcts"
+      ],
+      labs: [
+        { name: "CBC", val: "Normal", ref: "—", flag: "" },
+        { name: "Coagulation screen", val: "Normal", ref: "—", flag: "" },
+        { name: "Haemoglobin electrophoresis", val: "Normal", ref: "—", flag: "" },
+        { name: "Thyroid function", val: "Normal", ref: "—", flag: "" }
+      ],
+      imaging: "MRA: Bilateral ICA stenosis at the supraclinoid segment, bilateral MCA and ACA stenosis. Conventional DSA: 'puff of smoke' (moyamoya) collateral vessels at the skull base. MRI: bilateral watershed infarcts; no haemorrhage.",
+    }
+  },
+  {
+    id: 22, section: "Ch 11 — Neurovascular", tag: "11.3.11b",
+    answer: ["cadasil", "cerebral autosomal dominant arteriopathy subcortical infarcts leukoencephalopathy"],
+    hint: "Migraine with aura + recurrent subcortical strokes in a young patient with a positive family history + anterior temporal pole white matter changes.",
+    ref: "Greenberg §11.3.11, p. 219",
+    case: {
+      title: "The 42-year-old investment banker with three generations of early strokes",
+      patient: { name: "Nicolas F.", age: 42, sex: "M", emoji: "👨" },
+      demographics: "42 M • Investment banker • Non-smoker, lipids normal, no hypertension",
+      vitals: { BP: "122/76", HR: "72", RR: "14", T: "36.8°C", O2: "99%" },
+      narrative: `A 42-year-old investment banker presents after a second subcortical lacunar infarct. He has had migraine with aura since his 20s. His father had a stroke at 48 and died at 55 with dementia. His paternal grandfather died at 58 with "brain disease." His paternal aunt had her first stroke at 44 and is now severely demented at 58. He is deeply anxious. He has no vascular risk factors — his lipid profile, BP, glucose and cardiac workup have all been repeatedly normal. His wife describes personality change and memory impairment over the past year. He has been unable to manage his portfolio effectively.`,
+      neurological: [
+        "Mild subcortical cognitive impairment — slowed processing",
+        "Subtle left-sided upper limb drift",
+        "Executive function impaired on trail-making test",
+        "Pseudobulbar affect — brief laughing/crying episodes",
+        "No major aphasia or neglect",
+        "Prior MRI lacunar infarcts in right internal capsule and left thalamus"
+      ],
+      labs: [
+        { name: "Lipids", val: "Normal", ref: "—", flag: "" },
+        { name: "HbA1c", val: "Normal", ref: "—", flag: "" },
+        { name: "Coagulation/thrombophilia", val: "Negative", ref: "—", flag: "" },
+        { name: "NOTCH3 mutation (genetic)", val: "Pending", ref: "—", flag: "" }
+      ],
+      imaging: "MRI brain: Extensive bilateral T2/FLAIR white matter hyperintensity — CHARACTERISTIC DISTRIBUTION: anterior temporal poles and external capsule involvement (highly specific for CADASIL). Multiple small lacunar infarcts in basal ganglia and thalami. Microbleeds on GRE/SWI. No cortical infarcts.",
+    }
+  },
+  {
+    id: 23, section: "Ch 11 — Neurovascular", tag: "11.3.11c",
+    answer: ["rcvs", "reversible cerebral vasoconstriction syndrome", "thunderclap headache vasospasm", "call fleming syndrome"],
+    hint: "Recurrent thunderclap headaches + multifocal vasoconstriction on imaging + resolves in 3 months + triggers: drugs, postpartum, exertion.",
+    ref: "Greenberg §11.3.11, p. 219",
+    case: {
+      title: "The 38-year-old postpartum woman with four thunderclap headaches in two weeks",
+      patient: { name: "Isabella M.", age: 38, sex: "F", emoji: "👩" },
+      demographics: "38 F • 6 weeks postpartum • Used serotonergic antidepressants during pregnancy",
+      vitals: { BP: "148/92", HR: "88", RR: "16", T: "37.0°C", O2: "99%" },
+      narrative: `A 38-year-old woman presents 6 weeks after delivery with her fourth thunderclap headache in 2 weeks. Each reaches maximum intensity within 1 minute, lasts 2–3 hours, and then partially resolves. She went to the ED after the first episode — CT and LP were both normal. She was reassured and discharged. Her second and third headaches were triggered by Valsalva (lifting her baby). This fourth episode occurred at rest. She took sumatriptan for the second headache, which did not help. She has no prior headache history. She took sertraline throughout pregnancy and is now on bromocriptine to suppress lactation. On examination, blood pressure is elevated but there is no focal deficit.`,
+      neurological: [
+        "No focal neurological deficit",
+        "No meningismus",
+        "Fundoscopy normal — no papilloedema",
+        "Headache 8/10 at examination — diffuse, holocranial",
+        "No photophobia, no nausea"
+      ],
+      labs: [
+        { name: "CBC, BMP", val: "Normal", ref: "—", flag: "" },
+        { name: "CSF (4th episode LP)", val: "Normal — no xanthochromia", ref: "—", flag: "" },
+        { name: "Drug screen", val: "Negative", ref: "—", flag: "" },
+        { name: "Autoimmune screen", val: "Negative", ref: "—", flag: "" }
+      ],
+      imaging: "CTA head: Multifocal segmental vasoconstriction of bilateral MCA, ACA, and PCA branches — beading pattern. Contrast MRI: No infarct, no haemorrhage initially. Follow-up MRI at day 10: small cortical subarachnoid haemorrhage (convexity SAH) in right parietal sulcus — not in a cistern.",
+    }
+  },
+  {
+    id: 24, section: "Ch 11 — Neurovascular", tag: "11.3.12",
+    answer: ["paraneoplastic syndrome", "paraneoplastic encephalitis", "anti-hu syndrome", "limbic encephalitis paraneoplastic"],
+    hint: "Sub-acute cognitive/psychiatric symptoms, CSF inflammation, small cell lung cancer history, anti-Hu or other onconeuronal antibodies.",
+    ref: "Greenberg §11.3.12, p. 219",
+    case: {
+      title: "The 66-year-old ex-smoker with rapidly progressive dementia and a mass in the lung",
+      patient: { name: "Gerald H.", age: 66, sex: "M", emoji: "👴" },
+      demographics: "66 M • Retired teacher • 40 pack-year smoking history",
+      vitals: { BP: "136/82", HR: "82", RR: "18", T: "37.2°C", O2: "96%" },
+      narrative: `A 66-year-old retired teacher is referred with a 3-month history of progressive memory loss, behavioural change, and seizures. His wife reports he became anxious and depressed first, then confused — he repeatedly asks what day it is and cannot remember recent events at all. He has had two generalised seizures. He is a 40 pack-year smoker who quit 3 years ago. His CXR showed a right hilar mass found 2 weeks ago. An oncology appointment is pending. He has no history of prior neurological disease. Brain MRI was initially read as normal; repeat MRI now shows limbic signal change.`,
+      neurological: [
+        "Dense anterograde amnesia — cannot form new memories",
+        "Personality change — irritable, disinhibited",
+        "Seizures: two generalised, possibly temporal lobe onset",
+        "Mild choreiform movements of hands",
+        "Cranial nerves intact",
+        "Sensory neuropathy in feet — stocking distribution (sensory ganglionopathy)"
+      ],
+      labs: [
+        { name: "Anti-Hu (ANNA-1)", val: "Strongly positive", ref: "Negative", flag: "critical" },
+        { name: "Anti-Yo, Anti-Ri", val: "Negative", ref: "—", flag: "" },
+        { name: "Anti-NMDAR", val: "Negative", ref: "—", flag: "" },
+        { name: "CSF WBC", val: "38 lymphocytes/μL", ref: "<5", flag: "abnormal" },
+        { name: "CSF protein", val: "0.74 g/L", ref: "<0.45", flag: "abnormal" },
+        { name: "Biopsy (lung mass)", val: "Small cell lung carcinoma", ref: "—", flag: "critical" }
+      ],
+      imaging: "MRI brain: T2/FLAIR hyperintensity in bilateral mesial temporal lobes, hippocampi, and amygdalae — limbic encephalitis pattern. Mild Gd enhancement in left hippocampus. CT chest: right hilar mass with mediastinal adenopathy.",
+    }
+  },
+  // NEUROTOXICOLOGY
+  {
+    id: 25, section: "Ch 11 — Toxicology", tag: "11.4.1",
+    answer: ["wernicke encephalopathy", "wernicke", "wernicke korsakoff", "thiamine deficiency", "alcohol withdrawal"],
+    hint: "Classic triad of Wernicke's: ophthalmoplegia + ataxia + confusion. The history of alcohol is deliberately buried. Do not miss this — treat with thiamine IV.",
+    ref: "Greenberg §11.4.1, p. 221",
+    case: {
+      title: "The 'confused' 48-year-old brought in by police — don't assume it's just intoxication",
+      patient: { name: "Patrick O.", age: 48, sex: "M", emoji: "👨" },
+      demographics: "48 M • Unemployed • Found collapsed, alcohol smell noted",
+      vitals: { BP: "102/64", HR: "118", RR: "22", T: "37.1°C", O2: "96%" },
+      narrative: `A 48-year-old man is brought to the emergency department by police who found him wandering in traffic. He smells of alcohol. GCS is 12 (E3V4M5). He is ataxic — unable to stand without support. On direct questioning, he can state his name but cannot recall the year, where he is, or what happened. His nutritional state is poor — cachexic. He has track marks on his arms (heroin use). Blood alcohol level is 32 mmol/L — not high enough to fully explain his obtundation. The ED registrar prepares to discharge him to sleep it off. However, a nurse notices his eyes are moving abnormally.`,
+      neurological: [
+        "Horizontal nystagmus on lateral gaze bilaterally",
+        "Bilateral lateral rectus palsy (CN VI) — esotropia at rest",
+        "Severe truncal and gait ataxia",
+        "Confusion — disoriented to time and place",
+        "Bilateral lower limb hyporeflexia",
+        "No papilloedema",
+        "Peripheral neuropathy: reduced vibration and pin prick in feet"
+      ],
+      labs: [
+        { name: "Blood alcohol", val: "32 mmol/L", ref: "0", flag: "abnormal" },
+        { name: "Blood glucose", val: "3.2 mmol/L", ref: "3.9–5.5", flag: "abnormal" },
+        { name: "Thiamine (B1)", val: "12 nmol/L", ref: "70–180", flag: "critical" },
+        { name: "Magnesium", val: "0.54 mmol/L", ref: "0.7–1.0", flag: "abnormal" },
+        { name: "MCV", val: "108 fL", ref: "80–100", flag: "abnormal" },
+        { name: "GGT", val: "312 U/L", ref: "<60", flag: "critical" }
+      ],
+      imaging: "MRI brain: Symmetric T2/FLAIR hyperintensity in bilateral medial thalami (pulvinar), periaqueductal grey matter, mamillary bodies, and tectal plate — classic Wernicke pattern. Mamillary body atrophy on thin sagittal slices.",
+    }
+  },
+  {
+    id: 26, section: "Ch 11 — Toxicology", tag: "11.4.2",
+    answer: ["opioid toxicity", "opioid overdose", "opioid intoxication", "heroin overdose"],
+    hint: "Miosis + respiratory depression + decreased consciousness + response to naloxone. Simple but lethal if missed.",
+    ref: "Greenberg §11.4.2, p. 221",
+    case: {
+      title: "The 25-year-old found unresponsive with pinpoint pupils and a needle in the arm",
+      patient: { name: "Tyler K.", age: 25, sex: "M", emoji: "👨" },
+      demographics: "25 M • Known IV drug user • History of prior overdose",
+      vitals: { BP: "88/54", HR: "58", RR: "4", T: "35.8°C", O2: "72%" },
+      narrative: `A 25-year-old man is brought by ambulance after being found unresponsive in a public toilet. There is a syringe near him. GCS is 6 (E1V2M3). Respiratory rate is 4 per minute and shallow. He is deeply cyanotic. Pupils are bilaterally pinpoint (1 mm, reactive). No evidence of head trauma. The paramedic has already given intranasal naloxone 0.4 mg en route with no response — but the dose may have been inadequate for a fentanyl analogue. He has a past medical history notable for three prior overdoses and known hepatitis C.`,
+      neurological: [
+        "GCS 6 — no response to voice, withdraws to pain, incomprehensible sounds",
+        "Bilateral miosis (1 mm) — reactive",
+        "Absent gag reflex",
+        "Tone reduced throughout",
+        "No Babinski (symmetric absent plantar)"
+      ],
+      labs: [
+        { name: "Drug screen (urine)", val: "Fentanyl analogue positive; heroin metabolite positive", ref: "Negative", flag: "critical" },
+        { name: "Glucose", val: "5.1 mmol/L", ref: "3.9–5.5", flag: "" },
+        { name: "Paracetamol level", val: "Normal", ref: "—", flag: "" },
+        { name: "pH (ABG)", val: "7.18", ref: "7.35–7.45", flag: "critical" },
+        { name: "pCO2", val: "72 mmHg", ref: "35–45", flag: "critical" },
+        { name: "Lactate", val: "5.2 mmol/L", ref: "<2.0", flag: "critical" }
+      ],
+      imaging: "CT head: No intracranial haemorrhage. No cerebral oedema. CXR: Bilateral infiltrates — aspiration pneumonitis.",
+    }
+  },
+  {
+    id: 27, section: "Ch 11 — Toxicology", tag: "11.4.3",
+    answer: ["cocaine toxicity", "cocaine intoxication", "cocaine induced stroke", "cocaine neurotoxicity"],
+    hint: "Hypertensive crisis + stroke in a young patient + tachycardia + agitation + no cardiac history. Consider vasoconstriction and vasculitis mechanisms.",
+    ref: "Greenberg §11.4.3, p. 222",
+    case: {
+      title: "The 32-year-old with a stroke and a heart rate of 148 at a party",
+      patient: { name: "Jordan L.", age: 32, sex: "M", emoji: "👨" },
+      demographics: "32 M • Marketing professional • Brought from a private party",
+      vitals: { BP: "198/118", HR: "148", RR: "24", T: "38.8°C", O2: "97%" },
+      narrative: `A 32-year-old marketing professional is brought from a private party by ambulance after collapsing with sudden left-sided weakness and slurred speech. He had been dancing and appeared agitated prior to collapse. He is diaphoretic and tremulous. His friends deny drug use. BP is 198/118 on arrival. He has no prior cardiac or neurological history. On CT, there is an intracerebral haemorrhage in the right basal ganglia. Cardiac monitoring shows sinus tachycardia. His core temperature is 38.8°C. Pupils are 6 mm bilaterally and reactive. Nasal septum examination reveals a perforated septum.`,
+      neurological: [
+        "Left hemiplegia — arm 1/5, leg 2/5",
+        "Left central facial palsy",
+        "GCS 13 — drowsy but arousable",
+        "Right nasal septal perforation on ENT review",
+        "Pupils 6 mm bilateral, reactive",
+        "No meningismus"
+      ],
+      labs: [
+        { name: "Urine toxicology", val: "Cocaine metabolites (benzoylecgonine) positive", ref: "Negative", flag: "critical" },
+        { name: "Troponin I", val: "0.84 μg/L", ref: "<0.04", flag: "critical" },
+        { name: "CK", val: "4200 U/L", ref: "30–200", flag: "critical" },
+        { name: "Creatinine", val: "186 μmol/L", ref: "62–106", flag: "abnormal" },
+        { name: "ECG", val: "Sinus tachycardia, QTc 490ms, lateral ST changes", ref: "—", flag: "abnormal" }
+      ],
+      imaging: "CT head: 22 mL right basal ganglia intracerebral haemorrhage with surrounding oedema; 4 mm left midline shift. No aneurysm on CTA. No AVM. MRA post-stabilisation: multifocal cerebral vasospasm.",
+    }
+  },
+  {
+    id: 28, section: "Ch 11 — Toxicology", tag: "11.4.4",
+    answer: ["amphetamine toxicity", "amphetamine intoxication", "methamphetamine stroke", "amphetamine vasculitis"],
+    hint: "Similar to cocaine toxicity but more prolonged, with a distinctive vasculitis-like pattern on angiography and more florid psychiatric features.",
+    ref: "Greenberg §11.4.4, p. 222",
+    case: {
+      title: "The 28-year-old with 3 days of psychosis, a stroke, and beaded cerebral vessels",
+      patient: { name: "Chase W.", age: 28, sex: "M", emoji: "👨" },
+      demographics: "28 M • Student • 3-day methamphetamine binge",
+      vitals: { BP: "188/108", HR: "138", RR: "22", T: "40.1°C", O2: "96%" },
+      narrative: `A 28-year-old student is brought by his flatmates after 3 days of paranoid psychosis (believing he was being watched by government drones), insomnia, and now left arm weakness and aphasia. He has been awake for 72 hours. He appears severely agitated, diaphoretic, and tremulous. His body temperature is 40.1°C. There are bite marks on his hands. His flatmates confirm methamphetamine use was involved. ECG shows ventricular ectopics. There is a documented MCA infarct on CT.`,
+      neurological: [
+        "Severe paranoid psychosis — agitated, attempting to leave",
+        "Left arm weakness — 2/5 throughout",
+        "Broca's aphasia",
+        "Hyperthermia (40.1°C) — requires cooling",
+        "Hyperreflexia and clonus bilaterally (serotonin-like features)",
+        "Pupils 8 mm bilateral — reactive"
+      ],
+      labs: [
+        { name: "Amphetamine screen", val: "Strongly positive (methamphetamine)", ref: "Negative", flag: "critical" },
+        { name: "Temperature", val: "40.1°C", ref: "<37.5", flag: "critical" },
+        { name: "CK", val: "18,200 U/L (rhabdomyolysis)", ref: "30–200", flag: "critical" },
+        { name: "Creatinine", val: "212 μmol/L", ref: "62–106", flag: "critical" },
+        { name: "Na", val: "128 mmol/L", ref: "135–145", flag: "critical" }
+      ],
+      imaging: "CT head: Right MCA territory infarct — early hypodensity in right insular cortex. DSA: Multifocal 'string of beads' vasoconstriction involving bilateral MCA and ACA branches — amphetamine-associated vasculopathy/vasculitis. Mimics RCVS but in context of sustained use.",
+    }
+  },
+  {
+    id: 29, section: "Ch 11 — Toxicology", tag: "11.4.5",
+    answer: ["carbon monoxide poisoning", "co poisoning", "carbon monoxide toxicity"],
+    hint: "Multiple people affected in the same environment + headache + confusion without fever + cherry-red skin (rarely seen clinically). Measure COHb, not SpO2.",
+    ref: "Greenberg §11.4.5, p. 223",
+    case: {
+      title: "The whole family with 'flu' in January — but without fever",
+      patient: { name: "The Petrov family", age: 41, sex: "M+F+children", emoji: "👨‍👩‍👧‍👦" },
+      demographics: "41 M + 38 F + 12 F + 9 M • Family of 4 • Old terraced house with gas boiler",
+      vitals: { BP: "144/88 (father)", HR: "112", RR: "24", T: "37.0°C", O2: "99% (SpO2 — unreliable!)" },
+      narrative: `A family of four is brought to the emergency department after the eldest daughter called emergency services when she found her father unconscious on the kitchen floor. All four family members have been unwell for 3 days with headache, nausea, and fatigue. They attributed it to a flu going around. The mother has been vomiting. The 9-year-old son has had two brief "fainting spells" at home. The father has a GCS of 10. Their old gas boiler was serviced 6 months ago. The pulse oximetry reads 99% on all members (oximetry cannot distinguish oxyhaemoglobin from carboxyhaemoglobin). The house has no CO detector.`,
+      neurological: [
+        "Father (41 M): GCS 10 — confused, disoriented",
+        "Mother (38 F): GCS 13 — severe headache, vomiting",
+        "Daughter (12): GCS 15 — headache and nausea",
+        "Son (9): GCS 15 — reported syncope at home",
+        "All: no focal neurological deficit on examination",
+        "Father: cherry-red skin colouration (pathognomonic but often absent)"
+      ],
+      labs: [
+        { name: "COHb — Father", val: "42%", ref: "<3%", flag: "critical" },
+        { name: "COHb — Mother", val: "28%", ref: "<3%", flag: "critical" },
+        { name: "COHb — Daughter", val: "18%", ref: "<3%", flag: "abnormal" },
+        { name: "COHb — Son", val: "22%", ref: "<3%", flag: "critical" },
+        { name: "Troponin (Father)", val: "0.44 μg/L", ref: "<0.04", flag: "abnormal" },
+        { name: "Lactate (Father)", val: "6.8 mmol/L", ref: "<2.0", flag: "critical" }
+      ],
+      imaging: "MRI brain (Father): Bilateral globus pallidus T2 hyperintensity and diffusion restriction — classic CO poisoning pattern (delayed neurological sequelae risk). CT brain (other members): Normal acutely.",
+    }
+  },
+  {
+    id: 30, section: "Ch 11 — Toxicology", tag: "11.4.6",
+    answer: ["heavy metal toxicity", "lead toxicity", "lead poisoning", "lead encephalopathy"],
+    hint: "Occupational or environmental lead exposure + peripheral neuropathy (wrist drop) + encephalopathy + anaemia with basophilic stippling. Measure blood lead level.",
+    ref: "Greenberg §11.4.6, p. 223",
+    case: {
+      title: "The 44-year-old painter with dropping wrists and failing memory",
+      patient: { name: "Florian B.", age: 44, sex: "M", emoji: "👨" },
+      demographics: "44 M • House painter and lead pipe restorer • Works on pre-1970s buildings",
+      vitals: { BP: "148/94", HR: "74", RR: "15", T: "36.9°C", O2: "98%" },
+      narrative: `A 44-year-old house painter who specialises in restoring Victorian terraced houses presents with a 6-month history of bilateral wrist drop, memory problems, fatigue, and diffuse abdominal pain. His wife reports irritability and personality change. He occasionally burns old painted timber for heating in their unventilated workshop. He has no known alcohol use. His 7-year-old daughter has been having behaviour problems and learning difficulties at school. On examination, a blue-grey discolouration is visible along the gum line. Bilateral extensor weakness of the wrists is marked.`,
+      neurological: [
+        "Bilateral wrist drop — extensor digitorum communis 1/5 bilaterally",
+        "Bilateral radial nerve motor neuropathy on clinical testing",
+        "Distal lower limb sensory loss (mild)",
+        "Memory and concentration impaired on brief cognitive testing",
+        "Irritability and personality change (wife's report)",
+        "Burton's lines: blue-grey lead line at gingival margin"
+      ],
+      labs: [
+        { name: "Blood lead level", val: "88 μg/dL", ref: "<10 μg/dL", flag: "critical" },
+        { name: "Haemoglobin", val: "9.6 g/dL", ref: "13.5–17.5", flag: "abnormal" },
+        { name: "Peripheral blood film", val: "Basophilic stippling of red cells", ref: "—", flag: "critical" },
+        { name: "Protoporphyrin (ZPP)", val: "Markedly elevated", ref: "Normal", flag: "critical" },
+        { name: "Urine ALA (delta-ALA)", val: "Elevated", ref: "Normal", flag: "abnormal" },
+        { name: "Renal function", val: "Creatinine 142 μmol/L (lead nephropathy)", ref: "62–106", flag: "abnormal" }
+      ],
+      imaging: "X-ray long bones: Dense metaphyseal bands (lead lines) in radius and ulna. XRF scan: Elevated bone lead by in vivo fluorescence. EMG/NCS: Axonal motor neuropathy predominantly affecting radial nerve (bilateral).",
+    }
+  },
+  // ══════════════ CH 15 — PRIMARY INTRACRANIAL ANOMALIES ══════════════
+  {
+    id: 31, section: "Ch 15 — Intracranial Anomalies", tag: "15.1",
+    answer: ["arachnoid cyst", "intracranial arachnoid cyst"],
+    hint: "Incidental CSF-signal lesion on MRI, does not communicate with subarachnoid space by default. Middle fossa most common. Consider surgery only if symptomatic.",
+    ref: "Greenberg §15.1, p. 262",
+    case: {
+      title: "The 22-year-old athlete with headaches and a 'hole in the brain'",
+      patient: { name: "James A.", age: 22, sex: "M", emoji: "👨" },
+      demographics: "22 M • University rugby player • No prior neurological history",
+      vitals: { BP: "118/72", HR: "62", RR: "14", T: "36.8°C", O2: "99%" },
+      narrative: `A 22-year-old university rugby player is referred after an incidental finding on MRI performed for chronic headaches. Imaging shows a large CSF-signal lesion in the right middle fossa. He has had right-sided pressure headaches for 18 months. He denies seizures, diplopia, or gait problems. He is anxious about whether this "hole" caused his headaches, whether it will rupture, and whether he can continue playing contact sports. His GP has frightened him with talk of "cysts that can bleed." He is otherwise healthy and neurologically intact.`,
+      neurological: [
+        "Neurological examination: entirely normal",
+        "No papilloedema",
+        "No CN III palsy (no temporal lobe compression)",
+        "No pyramidal signs",
+        "Normal gait and coordination"
+      ],
+      labs: [
+        { name: "CBC, BMP", val: "Normal", ref: "—", flag: "" }
+      ],
+      imaging: "MRI brain: 5 × 4 × 3 cm CSF-intensity (T1 hypointense, T2 hyperintense, FLAIR suppressed) lesion in right middle fossa. No restricted diffusion. No internal septa or enhancement. Mild mass effect on right temporal lobe — minimal displacement of temporal horn. Galassi type II morphology.",
+    }
+  },
+  {
+    id: 32, section: "Ch 15 — Intracranial Anomalies", tag: "15.2.2",
+    answer: ["craniosynostosis", "sagittal craniosynostosis", "scaphocephaly", "synostosis"],
+    hint: "Premature fusion of a cranial suture in an infant. The affected suture dictates the skull shape deformity. Most common: sagittal → scaphocephaly.",
+    ref: "Greenberg §15.2.2, p. 265",
+    case: {
+      title: "The 4-month-old with a boat-shaped head and a firm ridge down the midline",
+      patient: { name: "Thomas R.", age: 0.3, sex: "M", emoji: "👶" },
+      demographics: "4-month-old M • Firstborn • Normal vaginal delivery • No family history",
+      vitals: { BP: "—", HR: "132", RR: "36", T: "37.1°C", O2: "99%" },
+      narrative: `A 4-month-old boy is brought by his parents who have noticed his head shape is abnormal — "long and narrow like a boat." On palpation there is a firm bony ridge running the length of the midline scalp from anterior to posterior fontanelle. The anterior fontanelle is smaller than expected. His head circumference is at the 97th centile for length (OFC large). He feeds well, is meeting developmental milestones appropriately, and has no neurological symptoms. His parents are worried about brain damage. The paediatrician was uncertain whether this was positional deformation or something requiring intervention.`,
+      neurological: [
+        "Alert, active, tracking faces and objects appropriately for age",
+        "Anterior fontanelle: small but present (not bulging)",
+        "Palpable ossified sagittal suture — rigid midline ridge",
+        "Head shape: markedly elongated AP diameter (dolichocephaly/scaphocephaly)",
+        "Bitemporal narrowing",
+        "No other sutures palpably fused"
+      ],
+      labs: [
+        { name: "Genetics panel (FGFR1/2/3, TWIST1)", val: "Negative (isolated, non-syndromic)", ref: "—", flag: "" }
+      ],
+      imaging: "Cranial CT 3D reconstruction: Sagittal suture completely fused (no visible suture gap). Frontal and lambdoid sutures patent. Calvarial shape: elongated anteroposterior, narrow bitemporal — scaphocephalic morphology. No intracranial hypertension signs (no 'copper-beaten' skull).",
+    }
+  },
+  {
+    id: 33, section: "Ch 15 — Intracranial Anomalies", tag: "15.2.3",
+    answer: ["encephalocele", "occipital encephalocele", "neural tube defect cranial"],
+    hint: "Defect in the skull with herniation of brain contents. Occipital most common in West. Fronto-ethmoidal more common in Southeast Asia.",
+    ref: "Greenberg §15.2.3, p. 271",
+    case: {
+      title: "The newborn with a sac at the back of the head — what's inside it?",
+      patient: { name: "Baby S.", age: 0, sex: "F", emoji: "👶" },
+      demographics: "Term neonate F • Prenatal USS: 'posterior fossa abnormality' • No antenatal folic acid",
+      vitals: { BP: "—", HR: "148", RR: "48", T: "36.9°C", O2: "98%" },
+      narrative: `A female neonate delivered by elective Caesarean section after a prenatal ultrasound at 20 weeks identified a "posterior fossa abnormality." At delivery, a 4 × 3 cm pulsatile sac is identified over the occiput, covered by thin, bluish skin. The paediatric team must assess: (1) does the sac contain brain tissue (encephalocele) or just meninges and CSF (meningocele)? (2) Is the sac intact (no leak)? (3) What neurological function is present? (4) What is the prognosis? The neonatal neurosurgeon must counsel the family within 24 hours regarding surgical options.`,
+      neurological: [
+        "Neonate alert and crying — Apgar 8/9",
+        "Sac: tense, pulsatile, covered by thin intact skin",
+        "Lower limb movement: symmetric and appropriate for term neonate",
+        "Upper limbs: normal spontaneous movement",
+        "Sac transillumination: heterogeneous — does not transilluminate uniformly (suggests brain tissue)",
+        "Ophthalmology: eyes open, tracking absent (normal for age)"
+      ],
+      labs: [
+        { name: "Karyotype", val: "46,XX — normal", ref: "—", flag: "" },
+        { name: "TORCH screen", val: "Negative", ref: "—", flag: "" },
+        { name: "MSAFP (antenatal)", val: "Elevated (antenatal)", ref: "Normal", flag: "abnormal" }
+      ],
+      imaging: "MRI neonatal brain: Occipital calvarial defect (3.2 cm). Sac contents: posterior fossa CSF + herniated cerebellar tissue. Cervicomedullary junction at normal level (no associated Chiari II). Supratentorial structures: cortical gyration appropriate for gestational age. No hydrocephalus currently.",
+    }
+  },
+  {
+    id: 34, section: "Ch 15 — Intracranial Anomalies", tag: "15.3",
+    answer: ["dandy walker malformation", "dandy-walker", "dandy walker syndrome"],
+    hint: "Enlarged posterior fossa + cystic 4th ventricle + absent/hypoplastic cerebellar vermis. Distinguish from mega cisterna magna and Blake's pouch cyst.",
+    ref: "Greenberg §15.3, p. 267",
+    case: {
+      title: "The infant with progressive head enlargement and a cavernous posterior fossa",
+      patient: { name: "Leila H.", age: 0.5, sex: "F", emoji: "👶" },
+      demographics: "6-month-old F • Born at term • OFC crossing upward centiles since birth",
+      vitals: { BP: "—", HR: "126", RR: "38", T: "37.0°C", O2: "99%" },
+      narrative: `A 6-month-old girl is referred by her health visitor because her head circumference has been crossing upward centile lines: birth 50th → 4 weeks 75th → 16 weeks 91st → now above 98th. Her fontanelle is full and bulging. Her parents report she is not yet rolling over (should roll at 4–6 months) and her neck control is poor. On examination, the posterior skull transilluminates brightly. Setting-sun sign is noted. She has hypotonia. An urgent CT has been arranged.`,
+      neurological: [
+        "Setting-sun sign: bilateral downward eye deviation (Parinaud's — aqueductal/tectal compression)",
+        "Anterior fontanelle: bulging, tense — raised ICP",
+        "Hypotonia — decreased resistance to passive movement",
+        "Absent independent sitting (delayed for age)",
+        "Abnormal ventral suspension posture",
+        "Absent Moro reflex (asymmetric — left arm hypotonic)"
+      ],
+      labs: [
+        { name: "Karyotype", val: "46,XX", ref: "—", flag: "" },
+        { name: "Metabolic screen", val: "Normal", ref: "—", flag: "" }
+      ],
+      imaging: "CT head: Massively enlarged posterior fossa. Cystic dilatation of 4th ventricle communicating with posterior fossa CSF space. Vermian hypoplasia — superior vermis only remnant. Tentorium elevated. Supratentorial hydrocephalus — all ventricles dilated. Corpus callosum partially absent (associated anomaly).",
+    }
+  },
+  {
+    id: 35, section: "Ch 15 — Intracranial Anomalies", tag: "15.4",
+    answer: ["aqueductal stenosis", "aqueduct stenosis", "obstructive hydrocephalus aqueductal"],
+    hint: "Non-communicating (obstructive) hydrocephalus — lateral and 3rd ventricles enlarged, 4th normal. Sylvian aqueduct narrowed. Can present in infancy or adulthood.",
+    ref: "Greenberg §15.4, p. 270",
+    case: {
+      title: "The 28-year-old with 'treatment-resistant headaches' who actually has hydrocephalus",
+      patient: { name: "Clara M.", age: 28, sex: "F", emoji: "👩" },
+      demographics: "28 F • Librarian • Treated for 'tension headaches' for 5 years",
+      vitals: { BP: "128/80", HR: "68", RR: "15", T: "36.9°C", O2: "99%" },
+      narrative: `A 28-year-old librarian is referred by her neurologist after 5 years of progressive headaches attributed to tension-type headache. Her headaches are positional — worse in the morning and with Valsalva. She has taken to sleeping semi-upright. She has noticed intermittent bilateral visual blurring and occasional diplopia. On examination her pupils are equal and reactive. She has bilateral papilloedema grade 2. Her opening pressure on LP is 32 cm H₂O. An MRI done acutely shows striking hydrocephalus. The 4th ventricle is remarkably normal in size.`,
+      neurological: [
+        "Papilloedema grade 2 bilaterally",
+        "Bilateral upgaze limitation (Parinaud's phenomenon) — aqueduct/tectal compression",
+        "Bilateral abducens (VI) palsy — false localising sign",
+        "No limb weakness or sensory deficit",
+        "Gait mildly wide-based",
+        "Cognitive slowing — reduced processing speed"
+      ],
+      labs: [
+        { name: "LP opening pressure", val: "32 cm H₂O", ref: "<25", flag: "abnormal" },
+        { name: "CSF composition", val: "Normal — no cells, normal protein", ref: "—", flag: "" }
+      ],
+      imaging: "MRI brain: Marked dilatation of lateral ventricles and 3rd ventricle. 4th ventricle NORMAL size — non-communicating (obstructive) pattern. Sagittal CISS/FIESTA: narrowing of Sylvian aqueduct at midbrain level — short segment stenosis. Periventricular T2 signal (transependymal oedema). Tectal plate: slight thickening (tectal glioma must be excluded).",
+    }
+  },
+  {
+    id: 36, section: "Ch 15 — Intracranial Anomalies", tag: "15.5",
+    answer: ["agenesis of corpus callosum", "corpus callosum agenesis", "callosal agenesis", "partial agenesis corpus callosum"],
+    hint: "Absent or partial corpus callosum, widely spaced parallel ventricles (racing car appearance), interhemispheric fissure extends to 3rd ventricle. May be incidental or cause intellectual disability.",
+    ref: "Greenberg §15.5, p. 274",
+    case: {
+      title: "The 19-year-old with unexplained epilepsy and widely-spaced 'racing car' ventricles",
+      patient: { name: "Ryan O.", age: 19, sex: "M", emoji: "👨" },
+      demographics: "19 M • Dropped out of school at 16 • Mild intellectual disability (IQ 72)",
+      vitals: { BP: "114/70", HR: "74", RR: "14", T: "36.8°C", O2: "99%" },
+      narrative: `A 19-year-old young man is referred to neurology after his second generalised seizure. He dropped out of school at 16 due to learning difficulties — always in special educational needs support. His mother reports he has always had trouble with abstract tasks, planning, and coordinating between his hands. He has mild social difficulties but manages to live semi-independently. His MRI is performed and the radiologist reports "striking callosal abnormality and abnormal ventricular morphology." There is no family history of epilepsy or brain malformations.`,
+      neurological: [
+        "Mild intellectual disability — IQ formally 72",
+        "Impaired interhemispheric transfer on tactile naming (alien hand-like features)",
+        "Intact basic language and motor functions",
+        "No current focal deficit",
+        "Reflexes normal",
+        "Visuospatial tasks: significantly impaired on neuropsychology"
+      ],
+      labs: [
+        { name: "Chromosomal microarray", val: "22q11.2 microdeletion (DiGeorge region) detected", ref: "Normal", flag: "abnormal" },
+        { name: "Metabolic screen", val: "Normal", ref: "—", flag: "" },
+        { name: "TORCH", val: "Negative", ref: "—", flag: "" }
+      ],
+      imaging: "MRI brain axial: Widely-spaced parallel lateral ventricles (colpocephaly) — 'racing car' or 'moose head' appearance. Sagittal: corpus callosum absent — genu, body, and splenium not identified. Probst bundles present (aberrant longitudinal fibres). 3rd ventricle rises between lateral ventricles (interhemispheric).",
+    }
+  },
+  {
+    id: 37, section: "Ch 15 — Intracranial Anomalies", tag: "15.7",
+    answer: ["intracranial lipoma", "corpus callosum lipoma", "pericallosal lipoma"],
+    hint: "Fat-density lesion on CT (negative Hounsfield units) at the midline, often associated with corpus callosum dysgenesis. Usually asymptomatic — do not operate.",
+    ref: "Greenberg §15.7, p. 276",
+    case: {
+      title: "The 24-year-old with 'a bright spot on the MRI' who definitely does not need surgery",
+      patient: { name: "Priya K.", age: 24, sex: "F", emoji: "👩" },
+      demographics: "24 F • Medical student • Incidental finding on MRI for headaches",
+      vitals: { BP: "112/68", HR: "72", RR: "14", T: "36.8°C", O2: "99%" },
+      narrative: `A 24-year-old medical student undergoes an MRI for recurrent headaches that her supervising consultant suspects is migraine without aura. The radiologist reports: "Fat-suppression confirms the pericallosal bright signal represents lipoma. Associated partial agenesis of the corpus callosum noted." She is immediately anxious — she knows what lipoma means in soft tissue and is terrified she has a tumour. She presents to the neurosurgery outpatient clinic demanding an operation. She has no seizures, no cognitive problems, and performs at the top of her medical school class.`,
+      neurological: [
+        "Entirely normal neurological examination",
+        "No seizures",
+        "Intellectual ability: well above average (medical student top decile)",
+        "Headaches: typical migraine without aura features",
+        "Normal cranial nerve exam, motor, sensory, cerebellar"
+      ],
+      labs: [
+        { name: "CBC, metabolic, thyroid", val: "Normal", ref: "—", flag: "" }
+      ],
+      imaging: "CT head: Hyperattenuating midline pericallosal lesion at genu of corpus callosum — Hounsfield units –80 to –100 (fat density). No calcification within lesion. MRI: T1 hyperintense, T2 hyperintense, COMPLETELY suppressed on fat-saturation sequences — confirms fat content. No surrounding oedema. No enhancement.",
+    }
+  },
+  {
+    id: 38, section: "Ch 15 — Intracranial Anomalies", tag: "15.8",
+    answer: ["hypothalamic hamartoma", "hypothalamic hamartoma gelastic seizures"],
+    hint: "Gelastic (laughing) seizures + precocious puberty in a child + non-enhancing hypothalamic mass isointense to grey matter. Distinctive clinical triad.",
+    ref: "Greenberg §15.8, p. 277",
+    case: {
+      title: "The 6-year-old who has uncontrollable laughing fits and started puberty at age 4",
+      patient: { name: "Maya R.", age: 6, sex: "F", emoji: "🧒" },
+      demographics: "6 F • Primary school pupil • Pubic hair and breast development since age 4",
+      vitals: { BP: "98/62", HR: "88", RR: "22", T: "36.9°C", O2: "99%" },
+      narrative: `A 6-year-old girl is referred jointly to neurology and endocrinology. Since age 3, she has had frequent brief episodes — 20–40 per day — of apparently involuntary laughter lasting 5–30 seconds. The laughter is not associated with a humorous stimulus and is followed by brief post-ictal confusion; she herself does not find anything funny during the episodes. Video-EEG has captured several events — the clinical laughter is followed immediately by a right temporal generalized spread. From age 4, she has had progressive breast development, pubic hair, and a growth spurt. Bone age X-ray is advanced by 3 years.`,
+      neurological: [
+        "Gelastic seizures: involuntary laughter, ~30 per day, 10–20 seconds each",
+        "Post-ictal confusion following each event",
+        "Cognitive testing: slight delay in verbal processing",
+        "Behavioural issues: aggression and emotional lability",
+        "No focal motor deficit",
+        "Normal gait and coordination"
+      ],
+      labs: [
+        { name: "LH (GnRH-stimulated)", val: "Markedly elevated for age", ref: "Prepubertal", flag: "critical" },
+        { name: "FSH", val: "Elevated for age", ref: "Prepubertal", flag: "abnormal" },
+        { name: "Estradiol", val: "Elevated for age", ref: "Prepubertal", flag: "abnormal" },
+        { name: "Bone age (X-ray)", val: "9 years (chronological age 6)", ref: "= Chronological", flag: "critical" },
+        { name: "GH, IGF-1", val: "Normal", ref: "—", flag: "" }
+      ],
+      imaging: "MRI brain sagittal (thin-cut T1): Small pedunculated lesion attached to the floor of the 3rd ventricle/tuber cinereum. T1: isointense to grey matter. T2: isointense. No enhancement. No cystic component. No calcification. Size: 8 × 7 mm. EEG: Ictal onset from right temporal region with rapid generalisation during gelastic events.",
+    }
+  }
+];
+
+const SECTIONS = ["Ch 10 — Neurology","Ch 11 — Neurovascular","Ch 11 — Toxicology","Ch 15 — Intracranial Anomalies"];
+let currentCase = null;
+let solved = new Set();
+let hintUsed = new Set();
+
+function buildSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML = '';
+  SECTIONS.forEach(sec => {
+    const cases = CASES.filter(c => c.section === sec);
+    const secDiv = document.createElement('div');
+    secDiv.className = 'sidebar-section';
+    secDiv.innerHTML = `<div class="sidebar-section-title">${sec}</div>`;
+    cases.forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'sidebar-item' + (solved.has(c.id) ? ' solved' : '') + (currentCase && currentCase.id === c.id ? ' active' : '');
+      item.id = 'sb-'+c.id;
+      item.innerHTML = `<span class="sidebar-num">${String(c.id).padStart(2,'0')}</span>${c.case.title.slice(0,34)}${c.case.title.length > 34 ? '…' : ''}`;
+      item.onclick = () => loadCase(c.id);
+      secDiv.appendChild(item);
+    });
+    sb.appendChild(secDiv);
+  });
+}
+
+function updateProgress() {
+  const pct = (solved.size / CASES.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = solved.size + ' / ' + CASES.length;
+}
+
+function startSim() {
+  document.getElementById('welcomeScreen').style.display = 'none';
+  loadCase(1);
+}
+
+function loadCase(id) {
+  currentCase = CASES.find(c => c.id === id);
+  buildSidebar();
+  renderCase();
+  const main = document.getElementById('mainArea');
+  main.scrollTop = 0;
+}
+
+function renderCase() {
+  const c = currentCase;
+  const d = c.case;
+  const isSolved = solved.has(c.id);
+
+  const labRows = (d.labs||[]).map(l =>
+    `<tr><td>${l.name}</td><td class="${l.flag}">${l.val}</td><td>${l.ref}</td></tr>`
+  ).join('');
+
+  const neuroItems = (d.neurological||[]).map(n => `<div class="finding-item">${n}</div>`).join('');
+
+  const html = `
+  <div class="case-screen active" id="caseScreen">
+    <div class="case-badge">
+      <span class="badge-section">§${c.tag}</span>
+      Case ${c.id} of ${CASES.length}
+      <span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text3)">${c.section}</span>
+    </div>
+    <div class="case-title">"${d.title}"</div>
+
+    <div class="patient-card">
+      <div class="patient-header">
+        <div class="patient-avatar">${d.patient.emoji}</div>
+        <div class="patient-meta">
+          <div class="patient-name">Patient: ${d.patient.name}</div>
+          <div class="patient-demo">${d.demographics}</div>
+        </div>
+      </div>
+      <div class="vitals-row">
+        <span class="vital">BP <span>${d.vitals.BP}</span></span>
+        <span class="vital">HR <span>${d.vitals.HR}</span></span>
+        <span class="vital">RR <span>${d.vitals.RR}</span></span>
+        <span class="vital">T <span>${d.vitals.T}</span></span>
+        <span class="vital">SpO₂ <span>${d.vitals.O2}</span></span>
+      </div>
+    </div>
+
+    <div class="case-section">
+      <div class="case-section-title">History & Presentation</div>
+      <div class="narrative">${d.narrative}</div>
+    </div>
+
+    <div class="case-section">
+      <div class="case-section-title">Neurological Examination</div>
+      <div class="finding-block" style="max-width:100%">
+        ${neuroItems}
+      </div>
+    </div>
+
+    ${labRows ? `
+    <div class="case-section">
+      <div class="case-section-title">Investigations</div>
+      <table class="lab-table">
+        <thead><tr><th>Test</th><th>Result</th><th>Reference</th></tr></thead>
+        <tbody>${labRows}</tbody>
+      </table>
+    </div>` : ''}
+
+    <div class="case-section">
+      <div class="case-section-title">Imaging</div>
+      <div class="imaging-block">
+        <span class="modality">Radiology report</span>
+        ${d.imaging}
+      </div>
+    </div>
+
+    <div class="answer-section">
+      <div class="answer-label">Your diagnosis</div>
+      <div class="answer-input-row">
+        <input class="answer-input" id="diagnosisInput" type="text" placeholder="Enter diagnosis…" ${isSolved ? 'disabled' : ''} onkeydown="if(event.key==='Enter')checkAnswer()">
+        <button class="submit-btn" onclick="checkAnswer()" ${isSolved ? 'disabled style=opacity:0.4' : ''}>Submit →</button>
+        <button class="hint-btn" onclick="showHint()" ${isSolved ? 'style=display:none' : ''}>Hint</button>
+      </div>
+      <div class="hint-box" id="hintBox">💡 ${c.hint}</div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+  </div>`;
+
+  document.getElementById('caseArea').innerHTML = html;
+  document.getElementById('welcomeScreen').style.display = 'none';
+
+  if (isSolved) {
+    showExplanation(true);
+  }
+}
+
+function showHint() {
+  const box = document.getElementById('hintBox');
+  box.classList.add('visible');
+  hintUsed.add(currentCase.id);
+}
+
+function normalise(s) {
+  return s.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g,' ').trim();
+}
+
+function checkAnswer() {
+  const input = document.getElementById('diagnosisInput');
+  const val = normalise(input.value);
+  if (!val) return;
+
+  const correct = currentCase.answer.some(a => {
+    const na = normalise(a);
+    return val === na || val.includes(na) || na.includes(val);
+  });
+
+  if (correct) {
+    solved.add(currentCase.id);
+    updateProgress();
+    buildSidebar();
+    showExplanation(true);
+    input.disabled = true;
+  } else {
+    showExplanation(false, input.value);
+  }
+}
+
+function showExplanation(correct, attempt) {
+  const c = currentCase;
+  const box = document.getElementById('resultBox');
+
+  const keyPoints = getKeyPoints(c.id);
+  const mainDx = c.answer[0].toUpperCase();
+
+  if (correct) {
+    box.className = 'result-box correct';
+    box.innerHTML = `
+      <div class="result-header"><span class="result-icon">✓</span> Correct — ${mainDx}</div>
+      <div class="explanation">${getExplanation(c.id)}</div>
+      <div class="key-points">
+        <div class="key-points-title">Key teaching points</div>
+        ${keyPoints.map(k => `<div class="key-point">${k}</div>`).join('')}
+      </div>
+      <div class="greenberg-ref">📖 Reference: ${c.ref}</div>
+      ${c.id < CASES.length ? `<br><button class="next-btn" onclick="loadCase(${c.id+1})">Next Case →</button>` : `<br><div style="font-family:var(--mono);font-size:13px;color:var(--accent);margin-top:12px">🎓 All cases complete — ${solved.size}/${CASES.length} diagnosed</div>`}
+    `;
+  } else {
+    box.className = 'result-box wrong';
+    box.innerHTML = `
+      <div class="result-header"><span class="result-icon">✗</span> Not quite — try again</div>
+      <div style="font-size:13px;color:var(--text2)">Your answer: <em>${attempt}</em> — not the primary diagnosis. Review the findings and try again, or use the hint.</div>
+    `;
+  }
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function getExplanation(id) {
+  const exps = {
+    1: "Dementia with Lewy bodies (DLB) is the second most common neurodegenerative dementia after Alzheimer's. The cardinal features are fluctuating cognition, recurrent visual hallucinations (formed, vivid), and parkinsonism (often mild or occurring after cognitive symptoms — key distinction from Parkinson's dementia where motor precedes cognition by >1 year). REM sleep behaviour disorder and autonomic dysfunction (orthostatic hypotension) are supportive features. The catastrophic sensitivity to antipsychotics (as seen with risperidone in this case) is a clinical emergency — neuroleptic malignant syndrome-like reaction occurs in ~50%. DaTscan confirms dopaminergic dysfunction.",
+    2: "Familial Hemiplegic Migraine (FHM) is a rare autosomal dominant subtype of migraine with aura that includes motor aura (hemiplegia). It is caused by mutations in CACNA1A (FHM1), ATP1A2 (FHM2), or SCN1A (FHM3). The key distinction from stroke is: young age, positive family history, full reversibility, preceding visual aura, associated headache, normal DWI, and recurrence. Triptans are relatively contraindicated in FHM. Correct diagnosis prevents inappropriate thrombolysis.",
+    3: "Progressive Supranuclear Palsy (PSP, Steele-Richardson-Olszewski syndrome) is a tauopathy characterised by: vertical supranuclear gaze palsy (especially downgaze), axial > appendicular rigidity, early postural instability with backward falls (retropulsion), pseudobulbar palsy, and frontal dementia. The 'hummingbird sign' on MRI (midbrain atrophy in sagittal view) and 'morning glory sign' (dilated cerebral peduncles on axial imaging) are diagnostic. Levodopa response is poor (unlike PD). Life expectancy ~7 years from diagnosis.",
+    4: "Multiple Sclerosis (MS) diagnosed by the 2010 McDonald criteria requires dissemination in space (DIS) and dissemination in time (DIT). This patient has DIS: prior optic neuritis + current spinal cord lesion + INO (MLF involvement). DIT: two separate attacks. Oligoclonal bands (not present in serum) are the most specific CSF finding. INO (failure of adduction with contralateral abducting nystagmus) strongly localises to the MLF — a hallmark MS lesion. AQP4/MOG negativity makes NMOSD less likely.",
+    5: "Acute Disseminated Encephalomyelitis (ADEM) is a monophasic inflammatory demyelinating CNS disorder, predominantly in children, typically following infection or vaccination (2–28 days). Unlike MS: large, bilateral, asymmetric white matter lesions; grey matter (basal ganglia, thalami) commonly involved; oligoclonal bands absent; MOG-IgG often positive in children (as here). Treatment: high-dose IV methylprednisolone, then taper. Risk of recurrence: MOG-IgG positive cases may have MOGAD (distinct from classic ADEM).",
+    6: "Amyotrophic Lateral Sclerosis (ALS) is the simultaneous degeneration of upper motor neurons (corticospinal tracts — hyperreflexia, spasticity, Babinski) AND lower motor neurons (anterior horn cells — fasciculations, wasting, weakness) in the same patient. El Escorial criteria require involvement of ≥3 regions (bulbar, cervical, thoracic, lumbosacral). The finding of brisk reflexes in wasted muscles is the diagnostic key. SOD1 mutation indicates familial ALS (~5–10% of cases). No disease-modifying treatment beyond riluzole (modest survival benefit) and edaravone.",
+    7: "Miller Fisher Syndrome (MFS) is the most clinically distinctive GBS variant: the triad of ophthalmoplegia + ataxia + areflexia WITHOUT limb weakness. It is associated with anti-GQ1b IgG antibodies (>90% sensitivity/specificity) — the GQ1b ganglioside is concentrated in paranodal regions of oculomotor nerves. Campylobacter jejuni is the most common preceding infection. The albuminocytological dissociation (high protein, low cells) may develop over days. Treatment: IVIg or plasmapheresis. Prognosis excellent — most recover fully in 1–3 months.",
+    8: "Neuromyelitis Optica Spectrum Disorder (NMOSD) with AQP4-IgG is a severe autoimmune astrocytopathy distinct from MS. Key features: longitudinally extensive transverse myelitis (LETM, ≥3 vertebral segments); severe optic neuritis (often bilateral or recurrent); area postrema syndrome (intractable hiccoughs/vomiting — pathognomonic); CSF with neutrophilia (not typical of MS). AQP4-IgG positive. Absence of oligoclonal bands and large spinal cord lesions distinguish from MS. Aggressive immunotherapy required — MS drugs (natalizumab, fingolimod) can paradoxically worsen NMOSD.",
+    9: "Neurosarcoidosis affects <5% of systemic sarcoidosis patients but can affect any part of the nervous system. The classic presentation: multiple cranial neuropathies (especially VII and II), leptomeningeal enhancement, and peripheral neuropathy. Elevated serum ACE (not specific), elevated serum and urinary calcium, bilateral hilar lymphadenopathy on CXR/CT, and elevated IL-2 receptor support the diagnosis. CSF shows elevated protein and lymphocytic pleocytosis with elevated ACE. Biopsy of the most accessible lesion (skin/lymph node preferred over brain) confirms non-caseating granulomas. Treatment: high-dose corticosteroids ± steroid-sparing agents.",
+    10: "Posterior Reversible Encephalopathy Syndrome (PRES) is a neurotoxic state of cerebral vasogenic oedema. Classic settings: hypertensive crises, eclampsia/pre-eclampsia (as here — with HELLP syndrome features), immunosuppressive drugs, renal failure. The occipital and parietal predominance reflects relative paucity of sympathetic autoregulatory innervation posteriorly. Key MRI: FLAIR hyperintensity posterior > anterior WITHOUT diffusion restriction (vasogenic, not cytotoxic — reversible). Treatment: urgent BP control, magnesium sulphate (eclampsia), remove offending drug. Recovery expected in days to weeks if treated promptly.",
+    11: "Crossed Cerebellar Diaschisis is a remote functional depression of cerebellar metabolism/blood flow CONTRALATERAL to a supratentorial hemispheric lesion. The mechanism is interruption of the cortico-ponto-cerebellar pathway (cortex → corticopontine fibres → pontine nuclei → contralateral cerebellar hemisphere). It does NOT represent a second structural lesion — this is a neurophysiological phenomenon detectable by PET/SPECT. Clinical significance: contributes to poorer rehabilitation outcomes and unexplained ataxia ipsilateral to the cerebellar hypoperfusion.",
+    12: "Giant Cell Arteritis (GCA) is the commonest systemic vasculitis in adults >50 years. The risk of permanent visual loss (anterior ischaemic optic neuropathy) is the clinical emergency — up to 20% lose vision permanently without treatment. Diagnosis criteria: age >50, new headache, temporal artery abnormality, ESR >50, biopsy with characteristic changes. The temporal artery biopsy remains gold standard but halo sign on Doppler/PET are increasingly used. START STEROIDS IMMEDIATELY (prednisolone 60 mg/day) — do not wait for biopsy. Biopsy can be done within 2 weeks of starting steroids without losing sensitivity significantly.",
+    13: "Polymyalgia Rheumatica (PMR) is an inflammatory condition of the elderly (>50 years, mean age 70) characterised by bilateral aching and stiffness of the shoulder and pelvic girdle that is worse in the morning (>45 minutes). CK is normal (not myositis). Strength is preserved (not a neuropathy or myopathy). ESR and CRP are dramatically elevated. PET-CT shows bursitis and synovitis at shoulder and hip joints. Dramatic response to low-dose prednisolone (15–20 mg/day) within 24–72 hours is both therapeutic and diagnostic. GCA coexists in 10–15% — must actively screen.",
+    14: "Granulomatosis with Polyangiitis (GPA, formerly Wegener's) is an ANCA-associated vasculitis with the classic triad: upper respiratory tract (sinusitis, septal perforation, saddle-nose) + lower respiratory tract (nodules, cavitation) + renal (pauci-immune glomerulonephritis with RBC casts). cANCA (PR3-ANCA) is >90% specific. Neurological involvement (mononeuritis multiplex, cranial neuropathies, pachymeningitis) occurs in 20–50%. Treatment: cyclophosphamide or rituximab + high-dose steroids for induction. Life-threatening without treatment.",
+    15: "Neuropsychiatric SLE (NPSLE) is defined by the ACR as neurological/psychiatric manifestations in the setting of SLE. Mechanisms: vasculopathy, autoantibodies (antiphospholipid, anti-ribosomal P protein), intrathecal complement activation, and cytokine-mediated neuroinflammation. Features: seizures, psychosis, cognitive impairment, chorea, myelitis, cerebrovascular disease. Anti-dsDNA and low complement confirm disease activity. Antiphospholipid antibodies (aCL here) add thrombotic risk. NPSLE diagnosis requires both meeting SLE criteria and exclusion of other causes. Treatment depends on mechanism (immunosuppression vs anticoagulation).",
+    16: "Lymphomatoid Granulomatosis (LyG) is an EBV-driven angiocentric and angiodestructive lymphoproliferative disorder predominantly involving the lungs (90%), skin, and CNS. It lies on the spectrum between EBV-driven reactive lymphoproliferation and diffuse large B-cell lymphoma (grade III LyG = lymphoma). The heterogeneous FDG-PET and cavitating pulmonary nodules in an immunocompromised host (transplant, AIDS, Wiskott-Aldrich) are characteristic. CSF EBV PCR is diagnostic for CNS involvement. Treatment: reduce immunosuppression + rituximab ± chemotherapy (R-CHOP for grade III).",
+    17: "Neuro-Behçet disease is the most feared complication of Behçet syndrome. Diagnostic criteria require recurrent oral ulcers (≥3/year) plus ≥2 of: genital ulcers, uveitis/retinal vasculitis, skin lesions, or positive pathergy test. Neurological manifestations: meningoencephalitis (most common — brainstem involvement pathognomonic), dural sinus thrombosis, and spinal cord involvement. HLA-B51 is strongly associated (especially in patients from the 'Silk Road' — Turkey to Japan). CSF shows inflammatory pleocytosis (neutrophilic or mixed). Treatment: steroids for acute attacks, azathioprine for prophylaxis. Anti-TNF for refractory cases.",
+    18: "Primary Angiitis of the CNS (PACNS) is a rare granulomatous vasculitis restricted to the CNS — no systemic features, normal systemic inflammatory markers. It mimics many CNS disorders. Diagnosis requires: (1) acquired neurological deficit not explained by another disorder; (2) CNS vasculitis on cerebral angiography (beading/irregularity) or brain biopsy; (3) exclusion of systemic vasculitis and infection. The sensitivity of catheter angiography is ~60% — small vessel disease (leptomeningeal biopsy needed in negative-angiography cases). CSF pleocytosis is present in ~80%. Treatment: cyclophosphamide + prednisone.",
+    19: "Hypersensitivity Vasculitis (small vessel vasculitis) is triggered by drugs (allopurinol, sulfonamides, β-lactams, NSAIDs) or infections. Clinical hallmark: palpable purpura (non-blanching, raised — due to leukocytoclastic vasculitis of post-capillary venules). Distinguishing features from ANCA vasculitis: drug exposure, eosinophilia, complement consumption, IgA deposits on skin biopsy (IgA vasculitis/Henoch-Schönlein if IgA dominant). Temporal relationship to allopurinol starting (3 weeks prior) is critical. Treatment: stop offending agent. Systemic steroids for organ involvement. Cyclophosphamide only if rapidly progressive GN.",
+    20: "Fibromuscular Dysplasia (FMD) is a non-inflammatory, non-atherosclerotic arteriopathy predominantly affecting young women. It involves medium-sized arteries — renal (hypertension), cervical carotid and vertebral (dissection, stroke), and mesenteric. The 'string of beads' pattern on angiography reflects alternating medial hyperplasia and adventitial fibrosis. Spontaneous arterial dissection is the most common neurological complication. FMD is a systemic disease — all vascular territories must be screened. Treatment: antiplatelet therapy for dissection; revascularisation (balloon angioplasty — NOT stenting as first line) for haemodynamic stenosis.",
+    21: "Moyamoya disease is a progressive vasculopathy causing bilateral stenosis/occlusion of the supraclinoid ICA and circle of Willis vessels, with compensatory deep perforating collaterals ('puff of smoke' on angiography = moyamoya in Japanese). Paediatric presentation: ischaemic strokes/TIAs, often triggered by hyperventilation (CO₂ drop → vasoconstriction). Adult presentation: more often haemorrhagic (from fragile collaterals). Surgical revascularisation (STA-MCA bypass, indirect procedures — EDAS/EMS) is the only effective treatment. Medical therapy alone is insufficient.",
+    22: "CADASIL (Cerebral Autosomal Dominant Arteriopathy with Subcortical Infarcts and Leukoencephalopathy) is caused by NOTCH3 mutations. The pathognomonic MRI finding is anterior temporal pole white matter hyperintensity and external capsule involvement — these are highly specific (>95%). It causes: migraine with aura (earliest symptom, 20s), recurrent subcortical lacunar strokes (40s), cognitive decline/dementia (50s), and psychiatric features. No vascular risk factors. Diagnosis: NOTCH3 sequencing or skin biopsy (granular osmiophilic material in smooth muscle cells). No specific treatment — manage risk factors.",
+    23: "Reversible Cerebral Vasoconstriction Syndrome (RCVS) is the most common cause of thunderclap headache in young adults. Triggers: postpartum state, serotonergic drugs (SSRIs, triptans), bromocriptine (as here), cannabis, sympathomimetics. Multifocal vasoconstriction on CTA/MRA typically resolves within 3 months. Complications (in ~5%): ischaemic stroke, cortical SAH, PRES. Convexity SAH (sulcal, not cisternal) is a radiological clue. Important DDx from aneurysmal SAH (cisternal) and PACNS (no triggers, not reversible). Treatment: nimodipine, remove trigger, avoid triptans.",
+    24: "Paraneoplastic Limbic Encephalitis (anti-Hu, ANNA-1) presents with subacute cognitive decline, temporal lobe seizures, psychiatric features, and sensory neuropathy/ganglionopathy. Anti-Hu targets RNA-binding proteins in neuronal nuclei — 80% have SCLC. The limbic encephalitis pattern (bilateral mesial temporal T2 signal) is characteristic. Key: search for the tumour — treatment of the underlying cancer can halt neurological progression. Immunotherapy (steroids, IVIg, plasma exchange) has limited efficacy in anti-Hu (cytotoxic T-cell mediated). Prognosis is poor compared to antibody-mediated limbic encephalitis (anti-NMDAR).",
+    25: "Wernicke Encephalopathy is caused by acute thiamine (B1) deficiency — classically in alcoholism, but also in bariatric surgery, hyperemesis, cancer, and starvation. The classic triad: ophthalmoplegia (CN VI palsy, nystagmus), gait ataxia, and confusion — but all three present simultaneously in <20% of cases. MRI: symmetric T2 signal in periaqueductal grey, medial thalami, mamillary bodies, tectal plate. Treatment: IV thiamine 500 mg TDS BEFORE any glucose (glucose administration in thiamine deficiency precipitates acute decompensation). Do NOT send the patient home — untreated, leads to irreversible Korsakoff syndrome (anterograde + retrograde amnesia).",
+    26: "Opioid toxicity (overdose) produces the classic triad: miosis, respiratory depression, decreased consciousness. The SpO₂ reading is unreliable because pulse oximetry cannot distinguish oxyhaemoglobin from carboxyhaemoglobin, but in pure opioid toxicity the fundamental problem is respiratory acidosis from hypoventilation. Treatment: naloxone (IV/IM/intranasal) — repeat dosing or infusion needed for long-acting opioids (methadone, fentanyl analogues). Fentanyl analogues require much higher naloxone doses than heroin. Intubation if naloxone fails. Aspiration pneumonitis is a common complication.",
+    27: "Cocaine-induced intracerebral haemorrhage is a medical and neurosurgical emergency. Mechanism: acute hypertensive surge (cocaine blocks catecholamine reuptake) + cocaine-induced vasospasm + vasculitis + endothelial dysfunction. Basal ganglia ICH is most common. The nasal septal perforation is pathognomonic of chronic cocaine insufflation. Treatment: blood pressure control (labetalol — alpha AND beta blockade; avoid pure beta-blockers which can precipitate paradoxical hypertension via unopposed alpha stimulation). Consider surgical evacuation if haematoma >30 mL or deteriorating.",
+    28: "Methamphetamine-associated cerebrovascular disease involves multiple mechanisms: catecholamine surge → hypertension → ICH; vasospasm → ischaemic stroke; direct endothelial toxicity; and an amphetamine-associated vasculopathy/vasculitis pattern on DSA (beading). Distinguishing features from cocaine: more prolonged course, more severe hyperthermia, more florid psychosis, rhabdomyolysis/renal failure, and hyponatraemia (from SIADH). The serotonin syndrome features (hyperreflexia, clonus, hyperthermia) can co-exist. Hyperthermia >40°C is life-threatening — active cooling is a priority.",
+    29: "Carbon monoxide (CO) poisoning is the leading cause of poisoning death in the UK and USA. CO binds haemoglobin with 240× greater affinity than oxygen, forming carboxyhaemoglobin (COHb). SpO₂ is FALSELY NORMAL because oximetry cannot distinguish OxyHb from COHb — only co-oximetry measures COHb directly. The bilateral globus pallidus necrosis on MRI is pathognomonic. Treatment: 100% high-flow oxygen via non-rebreather mask (reduces COHb half-life from 5 hours to ~1 hour). Consider hyperbaric oxygen for: COHb >25%, LOC, neurological symptoms, cardiac compromise, or pregnancy.",
+    30: "Lead (Pb) encephalopathy and neuropathy — lead selectively demyelinates motor nerves, causing a predominantly motor neuropathy with characteristic 'wrist drop' (radial nerve most susceptible). Burton's lines (blue gingival lead sulfide deposits) are pathognomonic in chronic exposure. Basophilic stippling of red blood cells reflects inhibition of delta-aminolevulinic acid dehydratase and pyrimidine 5'-nucleotidase. Source identification is critical. Treatment: chelation (DMSA/succimer orally, or CaNa₂EDTA parenterally for severe cases). Remove from exposure. Screen household contacts — the daughter's school difficulties may reflect lead toxicity.",
+    31: "Intracranial arachnoid cysts are benign congenital CSF-containing lesions enclosed by arachnoid membrane. The middle fossa (Sylvian fissure) accounts for ~50%. They are commonly incidental and most remain asymptomatic. The key question is whether symptoms (headaches, in this case) are attributable to the cyst — which requires exclusion of raised ICP (absent papilloedema here). Galassi classification (I–III for middle fossa): Type I small, non-compressive; Type II moderate; Type III large with temporal lobe displacement. Contact sport risk of subdural haemorrhage is real but rare. Surgical treatment (fenestration/shunting) only for symptomatic, progressive, or ICP-elevated cases.",
+    32: "Craniosynostosis is premature fusion of one or more cranial sutures, preventing normal skull expansion perpendicular to the fused suture. Sagittal synostosis (most common — 50%) → scaphocephaly (elongated AP, narrow bitemporal). Coronal → anterior plagiocephaly/brachycephaly. Metopic → trigonocephaly (keel-shaped forehead). Lambdoid → posterior plagiocephaly (but much rarer than positional). Treatment: surgical reconstruction, ideally at 3–6 months (before 12 months). Non-syndromic sagittal synostosis: good prognosis with surgery. Syndromic (Apert, Crouzon, Pfeiffer) may require staged procedures and multidisciplinary craniofacial team.",
+    33: "Encephalocele is a neural tube defect with herniation of meninges ± brain tissue through a calvarial defect. Occipital location accounts for 75% in Western countries (compared to fronto-ethmoidal in Southeast Asia/sub-Saharan Africa). Prognosis depends on: (1) content — brain tissue herniation (encephalocele) vs. CSF/meninges only (meningocele) — poorer with brain tissue; (2) associated anomalies (hydrocephalus, Chiari II, corpus callosum agenesis). Treatment: early surgical closure of defect. Outcomes range from normal development (small meningoceles) to severe impairment (large encephaloceles with brain herniation).",
+    34: "Dandy-Walker Malformation (DWM) is defined by the triad: enlarged posterior fossa, cystic dilatation of the 4th ventricle, and hypoplasia/absence of the cerebellar vermis. The tentorium is elevated, and the torcula is high-riding. Supratentorial hydrocephalus occurs in 70–90%. Associated anomalies: corpus callosum agenesis (20%), neuronal migration anomalies, cardiac defects. DDx from mega cisterna magna (normal vermis, 4th ventricle not connected) and Blake's pouch cyst. Treatment: CSF diversion (shunting the posterior fossa cyst ± supratentorial ventricles).",
+    35: "Aqueductal Stenosis is the most common cause of congenital obstructive hydrocephalus. The Sylvian aqueduct (cerebral aqueduct, 15 mm long, 2 mm diameter) connects 3rd to 4th ventricle — stenosis causes 3rd and lateral ventricle dilation with a NORMAL 4th ventricle. Adult presentation (as here) can be de novo or decompensated previously compensated stenosis. Parinaud's syndrome (tectal compression) — loss of upgaze, convergence-retraction nystagmus — is characteristic. Treatment: endoscopic third ventriculostomy (ETV) is first-line in adults (avoids shunt hardware). Ventriculoperitoneal shunt if ETV fails.",
+    36: "Agenesis of the Corpus Callosum (ACC) can be complete or partial (splenium is last formed — most often absent in partial ACC). The characteristic MRI finding is the 'racing car' or 'moose head' appearance of widely separated parallel lateral ventricles that do not form the normal midline curve. Probst bundles (aberrant longitudinal axon bundles that fail to cross) are pathognomonic. Associated with chromosomal abnormalities (22q11.2 deletion as here), metabolic disorders, and intrauterine infections. Presentation: seizures, intellectual disability, or incidental finding. No specific treatment — manage associated conditions.",
+    37: "Intracranial lipomas are rare congenital malformations (not true neoplasms) resulting from abnormal persistence of the meninx primitiva. Pericallosal lipomas (at the genu of the corpus callosum) are most common. They are fat-density on CT (negative Hounsfield units, –40 to –100) and are definitively confirmed by fat saturation on MRI (complete signal dropout). They are almost always asymptomatic and incidental. Surgery is contraindicated in asymptomatic cases — the lipoma is adherent to adjacent brain, cranial nerves, and vessels; attempts at removal cause more harm than the lesion. Management: reassurance, observe.",
+    38: "Hypothalamic Hamartomas (HH) are rare non-neoplastic malformations of the tuber cinereum. They cause two pathognomonic conditions: (1) Gelastic (laughing) seizures — the most specific seizure type for any lesion; laughter is ictal, involuntary, not joyful; arises from the hamartoma itself (intrinsic epileptogenicity). (2) Central precocious puberty — the hamartoma contains GnRH-secreting neurons that fire autonomously, bypassing hypothalamic regulation. Treatment: anti-epileptics are often ineffective for gelastic seizures; surgical disconnection or radiofrequency ablation of the hamartoma is increasingly effective. GnRH analogues suppress precocious puberty."
+  };
+  return exps[id] || "See Greenberg reference for detailed explanation.";
+}
+
+function getKeyPoints(id) {
+  const kp = {
+    1: ["DLB: cognitive onset precedes or accompanies motor symptoms (contrast with Parkinson's dementia: motor >1 year before cognition)","Catastrophic antipsychotic sensitivity in DLB — never give conventional antipsychotics","DaTscan: dopaminergic dysfunction in both DLB and PD","Cholinesterase inhibitors (rivastigmine) are first-line for DLB cognition"],
+    2: ["Motor aura + strong family history = consider familial hemiplegic migraine (CACNA1A mutation)","Normal DWI excludes acute ischaemic stroke","Triptans relatively contraindicated in hemiplegic migraine","Full reversibility within 24–72 hours is the rule"],
+    3: ["PSP vs PD: PSP = vertical gaze palsy, axial rigidity, backward falls, poor levodopa response","Hummingbird sign (MRI sagittal) = midbrain atrophy pathognomonic of PSP","PSP, MSA, CBD = 'Parkinson-plus syndromes' — poor levodopa response","Life expectancy ~7 years from symptom onset"],
+    4: ["2010 McDonald criteria: DIS + DIT satisfies MS diagnosis","INO (failure of adduction + contralateral abducting nystagmus) = MLF lesion = MS hallmark","CSF oligoclonal bands (present in CSF but not serum) = intrathecal IgG synthesis","AQP4-IgG negativity and short cord lesions (<3 segments) favour MS over NMOSD"],
+    5: ["ADEM: post-infectious (2–28 days), large bilateral poorly-defined demyelinating lesions, grey matter involvement","MOG-IgG positivity in paediatric ADEM — may signal MOGAD spectrum","No oligoclonal bands (vs MS)","High-dose IV methylprednisolone is first-line; IVIG or PLEX for refractory cases"],
+    6: ["ALS: simultaneous UMN + LMN signs in the same patient — the diagnostic key","Brisk reflexes in wasted, weak muscle = pathological — cannot occur in pure LMN disease","Fasciculations = LMN sign, but also seen in benign fasciculation syndrome","EMG is required for diagnosis: denervation in ≥3 regions"],
+    7: ["MFS triad: ophthalmoplegia + ataxia + areflexia without limb weakness","Anti-GQ1b IgG: >90% sensitivity and specificity for MFS","Campylobacter jejuni is the most common trigger (also responsible for AMAN GBS)","Albuminocytological dissociation develops over days — early LP may be normal"],
+    8: ["NMOSD: LETM (≥3 segments) + severe optic neuritis + area postrema syndrome (intractable hiccoughs)","AQP4-IgG positive NMOSD: intractable hiccoughs/vomiting = area postrema lesion pathognomonic","Absence of oligoclonal bands (MS has OCBs in >95%)","MS drugs (fingolimod, natalizumab) can cause catastrophic relapses in NMOSD"],
+    9: ["Neurosarcoidosis: non-caseating granulomas (must exclude TB before diagnosing)","Elevated serum ACE (not specific), elevated serum/urine calcium, bilateral hilar LAD","Multiple cranial neuropathies — especially facial nerve (CN VII) bilateral palsy","Biopsy most accessible site: skin, peripheral lymph node, nasal mucosa — not brain if avoidable"],
+    10: ["PRES: posterior FLAIR changes without DWI restriction (vasogenic oedema, reversible)","Classic settings: eclampsia, hypertensive crisis, calcineurin inhibitors, renal failure","Convexity SAH can occur as a PRES complication","Start magnesium sulphate (eclampsia) AND lower BP urgently"],
+    11: ["Crossed cerebellar diaschisis: functional depression (not structural lesion) contralateral to supratentorial injury","Mechanism: disruption of cortico-ponto-cerebellar pathway","Detected by PET/SPECT (not MRI)","Clinical impact: worse rehabilitation outcomes; explains ipsilateral cerebellar signs after contralateral stroke"],
+    12: ["GCA: age >50, new headache, jaw claudication, ESR >50, abnormal temporal artery","Visual loss risk: START STEROIDS IMMEDIATELY — do not wait for biopsy","Biopsy can still be done up to 2 weeks after starting steroids","AION (anterior ischaemic optic neuropathy) = pale oedematous disc = emergency"],
+    13: ["PMR: shoulder and hip girdle pain/stiffness, normal CK (not myositis), normal strength","Dramatic response to prednisolone 15–20 mg/day within 72 hours is diagnostic","PET-CT: bursitis and joint synovitis — no muscle pathology","10–15% have concurrent GCA — screen carefully"],
+    14: ["GPA (Wegener's): upper airway + lower airway + renal triad with cANCA/PR3-ANCA","Saddle-nose deformity = septal cartilage destruction","RBC casts in urine = pauci-immune glomerulonephritis","Treatment induction: rituximab (equivalent to cyclophosphamide, less toxic)"],
+    15: ["NPSLE: seizures, psychosis, cerebrovascular disease, chorea in setting of SLE criteria","Anti-dsDNA high titre + low complement C3/C4 = active SLE","Antiphospholipid antibodies add thrombotic mechanism","Distinguish immune-mediated (treat with steroids/immunosuppression) from thrombotic (treat with anticoagulation)"],
+    16: ["LyG: EBV-driven angiocentric lymphoproliferative disorder — lung (90%) + skin + CNS","Grading: I = reactive, II = mixed, III = large B-cell lymphoma (treat as DLBCL)","Reduce immunosuppression + rituximab","CD4 lymphopaenia from immunosuppression allows EBV reactivation"],
+    17: ["Behçet: oral ulcers (≥3/year) + genital ulcers + uveitis/skin + positive pathergy","HLA-B51 strongly associated — Silk Road geographic distribution","Neuro-Behçet: meningoencephalitis (brainstem predominance) OR dural sinus thrombosis","Pathergy test: pustule at needle prick site — positive in ~60% of Turkish patients"],
+    18: ["PACNS: CNS vasculitis without systemic features — normal ESR/CRP, negative ANA/ANCA","CSF pleocytosis present in ~80% — if normal CSF, diagnosis very unlikely","DSA required (CTA/MRA miss small vessel disease)","Brain biopsy (leptomeningeal) needed if DSA negative and diagnosis uncertain"],
+    19: ["Drug-induced vasculitis: palpable purpura + temporal drug exposure","Allopurinol, sulfonamides, β-lactams, NSAIDs, hydralazine are classic triggers","Eosinophilia + complement consumption","Leukocytoclastic vasculitis on skin biopsy confirms small vessel involvement"],
+    20: ["FMD: young women, non-atherosclerotic, non-inflammatory arteriopathy","'String of beads' = medial fibroplasia (most common type)","Involves renal (hypertension), cervical (dissection/stroke), and mesenteric arteries","Treatment: antiplatelet for stroke prevention; balloon angioplasty (NOT stenting) for haemodynamic stenosis"],
+    21: ["Moyamoya: progressive ICA/MCA/ACA stenosis → 'puff of smoke' collaterals on DSA","Hyperventilation trigger (CO₂ drop) precipitates TIAs/strokes in children","Adult presentation: haemorrhagic from fragile collaterals","Surgical revascularisation (STA-MCA bypass or indirect EDAS) is definitive treatment"],
+    22: ["CADASIL: NOTCH3 mutation, autosomal dominant, no conventional vascular risk factors","Pathognomonic MRI: anterior temporal pole + external capsule WMH","Progressive: migraine → lacunar strokes → dementia → death","Skin biopsy (GOM deposits on EM) or NOTCH3 sequencing for diagnosis"],
+    23: ["RCVS: recurrent thunderclap headaches + reversible multifocal vasoconstriction within 3 months","Triggers: postpartum, SSRIs, triptans, bromocriptine, cannabis, sympathomimetics","Convexity SAH (sulcal) is characteristic — distinguishes from aneurysmal (cisternal) SAH","Nimodipine shortens the symptomatic period; remove trigger"],
+    24: ["Paraneoplastic limbic encephalitis: anti-Hu (ANNA-1) + SCLC in >80%","Sensory neuropathy/ganglionopathy is a clue (anti-Hu affects dorsal root ganglia)","Always search for the tumour — PET-CT scan mandatory","Prognosis poor in anti-Hu (cytotoxic T-cell mediated); better in antibody-mediated (anti-NMDAR, anti-LGI1)"],
+    25: ["Wernicke's: ophthalmoplegia + ataxia + confusion — all three in <20% of cases","MRI: periaqueductal grey + medial thalami + mamillary bodies T2 signal","IV thiamine 500 mg TDS BEFORE glucose (glucose alone precipitates acute decompensation)","Untreated → irreversible Korsakoff syndrome (anterograde amnesia, confabulation)"],
+    26: ["Opioid triad: miosis + respiratory depression + decreased consciousness","SpO₂ is FALSELY NORMAL — co-oximetry needed to measure COHb (but here the problem is hypoventilation, not CO)","Naloxone: titrate to adequate respiration, not full reversal (avoid acute withdrawal)","Fentanyl analogues require higher naloxone doses than heroin"],
+    27: ["Cocaine ICH: hypertensive surge + vasospasm mechanism","Nasal septal perforation = chronic cocaine insufflation","Avoid pure beta-blockers (unopposed alpha → hypertensive crisis)","Basal ganglia most common location for cocaine-induced ICH"],
+    28: ["Methamphetamine: serotonin syndrome features (hyperthermia, clonus, agitation) + amphetamine vasculopathy","Rhabdomyolysis (CK >10,000) + acute kidney injury common","Prolonged psychosis (>24h) distinguishes from cocaine (shorter-acting)","Hyperthermia is the most life-threatening complication — cool aggressively"],
+    29: ["CO poisoning: multiple affected individuals + closed/poorly ventilated space","SpO₂ UNRELIABLE — measure COHb by co-oximetry (from ABG sample)","Bilateral globus pallidus necrosis: MRI hallmark of CO poisoning","100% O₂ via non-rebreather; consider HBO for COHb >25% or neurological symptoms"],
+    30: ["Lead neuropathy: motor predominant + wrist drop (radial nerve most sensitive)","Burton's lines (gingival) + basophilic stippling (peripheral blood film) are pathognomonic","Blood lead level >10 μg/dL is abnormal; >45 μg/dL requires chelation","Screen household contacts — children are disproportionately affected (developing nervous system)"],
+    31: ["Arachnoid cysts: CSF-intensity lesion (T1 dark, T2 bright, FLAIR-suppressed)","Middle fossa (Sylvian) = most common location","Galassi I–III classification for middle fossa cysts","Surgery only if symptomatic with raised ICP, seizures, or neurological deficit — not for incidental headaches"],
+    32: ["Sagittal synostosis: most common (50%), scaphocephaly, 80% male","Differentiate from positional plagiocephaly (deformity, no bony ridge, repositioning corrects)","Surgery at 3–6 months optimal — endoscopic strip craniectomy + helmet or open calvarial remodelling","Syndromic synostosis (Apert, Crouzon, Pfeiffer): FGFR mutations, require multidisciplinary team"],
+    33: ["Encephalocele: meninges + brain tissue herniation through calvarial defect","Occipital (75% Western) vs fronto-ethmoidal (Southeast Asia)","Prognosis: determined by amount of herniated brain tissue and associated anomalies","No Chiari II in isolated occipital encephalocele (unlike myelomeningocele)"],
+    34: ["Dandy-Walker: enlarged posterior fossa + 4th ventricle cyst + vermian hypoplasia — all three required","Tentorium elevated, torcula high-riding: pathognomonic","Hydrocephalus develops in 70–90% — may present in infancy or childhood","Setting-sun sign = Parinaud's phenomenon from tectal compression"],
+    35: ["Aqueductal stenosis: obstructive hydrocephalus — 3rd and lateral ventricles enlarged, 4th ventricle NORMAL","Parinaud's syndrome (upgaze palsy, convergence nystagmus) = tectal/aqueductal compression","ETV (endoscopic third ventriculostomy) is first-line in adults and older children","Bilateral CN VI palsy in raised ICP = false localising sign"],
+    36: ["ACC: colpocephaly (occipital horn enlargement) + parallel ventricles ('racing car sign')","Probst bundles: aberrant longitudinal fibres (fail to cross midline)","Partial ACC: splenium absent first (last structure to develop)","22q11.2 deletion is a common associated chromosomal abnormality"],
+    37: ["Intracranial lipoma: congenital (not true neoplasm) — do NOT operate on asymptomatic lesions","CT: negative Hounsfield units (–40 to –100) confirms fat","MRI: T1 bright, T2 bright, completely suppressed on fat-sat — diagnostic","Most common: pericallosal (genu/body of corpus callosum); second: quadrigeminal cistern"],
+    38: ["Hypothalamic hamartoma: gelastic seizures (involuntary laughing) + central precocious puberty","Gelastic seizures originate from the hamartoma itself — 'epileptic generator in a heterotopic mass'","GnRH analogue (leuprolide) for precocious puberty; surgical disconnection or MRI-guided laser ablation for seizures","AEDs rarely effective for gelastic seizures from HH"]
+  };
+  return kp[id] || ["See Greenberg reference for key points."];
+}
+
+// ── INIT
+buildSidebar();
+updateProgress();
+</script>
+</body>
+</html>
